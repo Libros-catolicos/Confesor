@@ -19,11 +19,12 @@ export default async function PanelLayout({ children }: LayoutProps<'/panel'>) {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: priest } = await supabase
+  const { data: priest, error } = await supabase
     .from('priests')
     .select('*')
     .eq('id', user.id)
     .single<Priest>()
+  if (error) console.error('[panel] priests:', error.code, error.message)
 
   return (
     <div className="flex flex-col gap-5">

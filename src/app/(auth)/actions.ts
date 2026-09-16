@@ -48,6 +48,7 @@ export async function registro(_prev: AuthState, formData: FormData): Promise<Au
     if (error.message.toLowerCase().includes('already')) {
       return { error: 'Ya existe una cuenta con ese email.' }
     }
+    console.error('[registro] signUp:', error.code, error.message)
     return { error: 'No se ha podido crear la cuenta. Inténtalo de nuevo.' }
   }
 
