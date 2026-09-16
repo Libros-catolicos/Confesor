@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { IDIOMAS } from '@/lib/idiomas'
+import { siteUrl } from '@/lib/site'
 
 export type AuthState = { error?: string; ok?: string } | undefined
 
@@ -41,7 +42,7 @@ export async function registro(_prev: AuthState, formData: FormData): Promise<Au
     options: {
       // El trigger handle_new_user crea profiles + priests con estos datos
       data: { full_name: fullName, languages },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/auth/callback?next=/panel`,
+      emailRedirectTo: `${siteUrl()}/auth/callback?next=/panel`,
     },
   })
   if (error) {

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import type { Priest, PriestPrivate } from '@/lib/types'
+import { siteUrl } from '@/lib/site'
 import { FichaForm } from './FichaForm'
 import { CopiarEnlace } from './CopiarEnlace'
 
@@ -18,7 +19,7 @@ export default async function FichaPage() {
   ])
   if (!priest || !priv) return null
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? ''
+  const base = siteUrl()
   const urlPublica = `${base}/s/${priest.slug}`
   const urlCalendario = `${base}/api/calendario/${priv.calendar_token}.ics`
 
