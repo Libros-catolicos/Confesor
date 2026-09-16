@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { CalendarCheck, MapPin } from 'lucide-react'
+import { CalendarCheck, CalendarPlus, MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { fmtFecha, fmtHora } from '@/lib/fechas'
+import { fmtFecha, fmtFechaHora, fmtHora } from '@/lib/fechas'
 import { nombreIdioma } from '@/lib/idiomas'
 import {
   APPOINTMENT_STATUS_LABEL,
@@ -11,10 +11,11 @@ import {
   type SlotType,
 } from '@/lib/types'
 import { cancelarCita } from './actions'
+import { Propuesta } from './Propuesta'
 
 export const metadata = { title: 'Tu cita' }
 
-interface CitaToken {
+export interface CitaToken {
   id: string
   starts_at: string
   ends_at: string
@@ -22,6 +23,10 @@ interface CitaToken {
   language: string
   status: AppointmentStatus
   guest_name: string
+  cancelled_by: 'sacerdote' | 'fiel' | null
+  cancel_message: string | null
+  proposed_starts_at: string | null
+  proposed_ends_at: string | null
   priest_name: string
   priest_slug: string
   place_name: string
@@ -51,12 +56,27 @@ export default async function CitaPage({ params, searchParams }: PageProps<'/cit
         <div className="mb-4 flex items-start gap-3 rounded-lg bg-green-50 p-4 text-sm text-green-900">
           <CalendarCheck className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
           <div>
-            <p className="font-medium">Cita reservada, {cita.guest_name}.</p>
+            <p className="font-medium">
+              {cita.status === 'pendiente'
+                ? `Solicitud enviada, ${cita.guest_name}. El sacerdote la confirmará.`
+                : `Cita reservada, ${cita.guest_name}.`}
+            </p>
             <p className="mt-1">
               Guarda esta página: desde aquí puedes consultar o cancelar la cita. El enlace es
               privado; no lo compartas.
             </p>
           </div>
+        </div>
+      )}
+
+      {cita.status === 'reprogramar' && cita.proposed_starts_at && (
+        <div className="mb-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-900">
+          <p className="font-medium">{cita.priest_name} no puede atenderte a la hora reservada.</p>
+          {cita.cancel_message && <p className="mt-1 italic">«{cita.cancel_message}»</p>}
+          <p className="mt-2">
+            Te propone: <span className="font-medium">{fmtFechaHora(cita.proposed_starts_at, cita.timezone)}</span>
+          </p>
+          <Propuesta token={token} />
         </div>
       )}
 
@@ -74,7 +94,7 @@ export default async function CitaPage({ params, searchParams }: PageProps<'/cit
               activa ? 'bg-accent-soft text-accent' : 'bg-border text-muted'
             }`}
           >
-            {APPOINTMENT_STATUS_LABEL[cita.status]}
+            {cita.status === 'pendiente' ? 'Pendiente de confirmar' : APPOINTMENT_STATUS_LABEL[cita.status]}
           </span>
         </div>
 
@@ -108,20 +128,30 @@ export default async function CitaPage({ params, searchParams }: PageProps<'/cit
         </dl>
 
         {activa && futura && (
-          <form action={cancelarCita} className="mt-6 border-t border-border pt-4">
-            <input type="hidden" name="token" value={token} />
-            <p className="mb-2 text-sm text-muted">
-              Si no vas a poder acudir, cancela para liberar el hueco.
-            </p>
-            <button type="submit" className="btn-secondary text-red-700">
-              Cancelar la cita
-            </button>
-          </form>
+          <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-border pt-4">
+            <a href={`/cita/${token}/ics`} className="btn-secondary">
+              <CalendarPlus className="h-4 w-4" />
+              Añadir a mi calendario
+            </a>
+            <form action={cancelarCita}>
+              <input type="hidden" name="token" value={token} />
+              <button type="submit" className="btn-secondary text-red-700">
+                Cancelar la cita
+              </button>
+            </form>
+          </div>
         )}
 
         {cita.status === 'cancelada' && (
           <p className="mt-6 border-t border-border pt-4 text-sm text-muted">
-            Esta cita está cancelada.{' '}
+            {cita.cancelled_by === 'sacerdote' ? (
+              <>
+                El sacerdote ha tenido que cancelar esta cita.
+                {cita.cancel_message && <> Mensaje: «{cita.cancel_message}»</>}
+              </>
+            ) : (
+              'Esta cita está cancelada.'
+            )}{' '}
             <Link href={`/s/${cita.priest_slug}`} className="text-accent underline">
               Reservar otra
             </Link>

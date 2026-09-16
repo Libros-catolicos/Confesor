@@ -13,7 +13,7 @@ export default async function PanelPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const [{ count: lugares }, { count: reglas }, { data: proximas }] = await Promise.all([
+  const [{ count: lugares }, { count: reglas }, { data: proximas }, { count: pendientes }] = await Promise.all([
     supabase.from('priest_places').select('*', { count: 'exact', head: true }).eq('priest_id', user!.id),
     supabase.from('availability_rules').select('*', { count: 'exact', head: true }).eq('priest_id', user!.id),
     supabase
@@ -25,6 +25,12 @@ export default async function PanelPage() {
       .order('starts_at')
       .limit(5)
       .returns<CitaConLugar[]>(),
+    supabase
+      .from('appointments')
+      .select('*', { count: 'exact', head: true })
+      .eq('priest_id', user!.id)
+      .eq('status', 'pendiente')
+      .gte('starts_at', new Date().toISOString()),
   ])
 
   const pasos = [
@@ -34,6 +40,14 @@ export default async function PanelPage() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
+      {(pendientes ?? 0) > 0 && (
+        <Link
+          href="/panel/citas"
+          className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 hover:bg-amber-100 md:col-span-2"
+        >
+          Tienes {pendientes} cita{pendientes === 1 ? '' : 's'} pendiente{pendientes === 1 ? '' : 's'} de confirmar.
+        </Link>
+      )}
       <section className="card">
         <h2 className="font-semibold">Primeros pasos</h2>
         <ul className="mt-3 flex flex-col gap-2 text-sm">
@@ -63,7 +77,12 @@ export default async function PanelPage() {
             {proximas.map((c) => (
               <li key={c.id} className="flex items-center justify-between gap-3 py-2">
                 <div>
-                  <p className="font-medium">{c.guest_name}</p>
+                  <p className="font-medium">
+                    {c.guest_name}
+                    {c.status === 'pendiente' && (
+                      <span className="ml-2 rounded-full bg-amber-50 px-1.5 py-0.5 text-xs text-amber-800">Pendiente</span>
+                    )}
+                  </p>
                   <p className="text-muted">
                     {fmtFechaHora(c.starts_at, c.places?.timezone ?? 'Europe/Madrid')} ·{' '}
                     {SLOT_TYPE_LABEL[c.type]}
