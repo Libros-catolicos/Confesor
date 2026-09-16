@@ -12,13 +12,15 @@ export function fmtFechaHora(iso: string, timezone: string) {
   }).format(new Date(iso))
 }
 
+/** "Miércoles, 16 de septiembre" (primera letra en mayúscula) */
 export function fmtFecha(iso: string, timezone: string) {
-  return new Intl.DateTimeFormat('es-ES', {
+  const s = new Intl.DateTimeFormat('es-ES', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     timeZone: timezone,
   }).format(new Date(iso))
+  return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
 export function fmtHora(iso: string, timezone: string) {
