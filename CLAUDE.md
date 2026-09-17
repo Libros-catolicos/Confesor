@@ -12,9 +12,10 @@
 - Solo un admin cambia `priests.status` (trigger `priests_guard_status`).
 - Sin reseñas ni valoraciones de sacerdotes; minimizar datos personales (art. 9 RGPD).
 - Migraciones en `supabase/migrations/NNNN_nombre.sql`, numeradas.
-- Recursos: artículos en `content/recursos/*.md` (frontmatter title/summary/section/order) y libros en `content/libros.json`; editables desde GitHub. Contenido doctrinal revisado por el usuario.
+- Recursos: tablas `articles` y `books` (RLS: lectura pública, escritura admin) gestionadas en `/admin`. Portadas en bucket `portadas`. Constantes/tipos compartidos con cliente en `src/lib/contenido.ts`; el cargador de servidor en `src/lib/recursos.ts`.
 - Datos privados del sacerdote (token de calendario, notas de verificación) van en `priest_private`,
   nunca en `priests` (que es de lectura pública). Supabase concede permisos a `anon` por defecto en
   tablas nuevas: revocar explícitamente en tablas privadas (ver migración 0007).
 - Geocodificación con Photon (komoot) y respaldo Nominatim; el alta de lugar es en dos pasos
   (buscar → elegir candidato) porque los geocodificadores fallan con direcciones ambiguas.
+- Zona `/admin`: `requireAdmin()` en cada página y action (rol en `profiles.role`). Para nombrar admin: `update profiles set role = 'admin' where email = ...`.

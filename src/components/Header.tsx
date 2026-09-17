@@ -12,6 +12,10 @@ export async function Header() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  const { data: profile } = user
+    ? await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+    : { data: null }
+  const esAdmin = profile?.role === 'admin'
 
   return (
     <header className="border-b border-border bg-card">
@@ -32,8 +36,8 @@ export async function Header() {
             </Link>
           ))}
           {user ? (
-            <Link href="/panel" className="btn-primary">
-              Mi panel
+            <Link href={esAdmin ? '/admin' : '/panel'} className="btn-primary">
+              {esAdmin ? 'Administración' : 'Mi panel'}
             </Link>
           ) : (
             <Link href="/login" className="btn-primary">

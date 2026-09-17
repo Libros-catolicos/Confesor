@@ -3,15 +3,10 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { leerArticulo, listarArticulos, SECCIONES } from '@/lib/recursos'
 
-export async function generateStaticParams() {
-  const articulos = await listarArticulos()
-  return articulos.map((a) => ({ slug: a.slug }))
-}
-
 export async function generateMetadata({ params }: PageProps<'/recursos/[slug]'>) {
   const { slug } = await params
   const a = await leerArticulo(slug)
-  return { title: a?.title ?? 'Recursos', description: a?.summary }
+  return { title: a?.title ?? 'Recursos', description: a?.summary ?? undefined }
 }
 
 export default async function ArticuloPage({ params }: PageProps<'/recursos/[slug]'>) {

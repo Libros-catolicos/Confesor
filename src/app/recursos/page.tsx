@@ -49,20 +49,20 @@ export default async function RecursosPage() {
           <p className="mb-3 text-sm text-muted">Libros que ayudan a vivir mejor el sacramento y la vida interior.</p>
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {libros.map((l) => (
-              <li key={l.titulo} className={`card flex gap-4 ${l.destacado ? 'border-accent/40 bg-accent-soft/40' : ''}`}>
-                {l.portada && (
+              <li key={l.id} className={`card flex gap-4 ${l.featured ? 'border-accent/40 bg-accent-soft/40' : ''}`}>
+                {l.cover_url && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={l.portada}
+                    src={l.cover_url}
                     alt=""
                     className="h-28 w-20 shrink-0 rounded object-cover shadow-sm"
                     loading="lazy"
                   />
                 )}
                 <div className="min-w-0">
-                  <h3 className="font-medium">{l.titulo}</h3>
-                  <p className="text-sm text-muted">{l.autor}</p>
-                  <p className="mt-2 text-sm">{l.descripcion}</p>
+                  <h3 className="font-medium">{l.title}</h3>
+                  {l.author && <p className="text-sm text-muted">{l.author}</p>}
+                  {l.description && <p className="mt-2 text-sm">{l.description}</p>}
                   {l.url && (
                     <a
                       href={l.url}
