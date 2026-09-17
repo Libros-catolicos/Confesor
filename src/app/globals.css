@@ -55,3 +55,55 @@ body {
 .label {
   @apply mb-1 block text-sm font-medium text-foreground;
 }
+
+/* Artículos de Recursos (HTML generado desde Markdown) */
+.prosa {
+  line-height: 1.7;
+}
+.prosa h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.prosa h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.25rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.prosa p {
+  margin: 0.75rem 0;
+}
+.prosa ul,
+.prosa ol {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+.prosa ul {
+  list-style: disc;
+}
+.prosa ol {
+  list-style: decimal;
+}
+.prosa li {
+  margin: 0.25rem 0;
+}
+.prosa blockquote {
+  margin: 1rem 0;
+  border-left: 3px solid var(--accent);
+  padding: 0.25rem 0 0.25rem 1rem;
+  color: var(--muted);
+  font-style: italic;
+}
+.prosa a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.prosa strong {
+  font-weight: 600;
+}
+.prosa hr {
+  margin: 2rem 0;
+  border-color: var(--border);
+}

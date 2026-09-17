@@ -12,7 +12,7 @@
 - Solo un admin cambia `priests.status` (trigger `priests_guard_status`).
 - Sin reseñas ni valoraciones de sacerdotes; minimizar datos personales (art. 9 RGPD).
 - Migraciones en `supabase/migrations/NNNN_nombre.sql`, numeradas.
-- La pestaña "Recursos" (libros) NO forma parte del MVP.
+- Recursos: artículos en `content/recursos/*.md` (frontmatter title/summary/section/order) y libros en `content/libros.json`; editables desde GitHub. Contenido doctrinal revisado por el usuario.
 - Datos privados del sacerdote (token de calendario, notas de verificación) van en `priest_private`,
   nunca en `priests` (que es de lectura pública). Supabase concede permisos a `anon` por defecto en
   tablas nuevas: revocar explícitamente en tablas privadas (ver migración 0007).

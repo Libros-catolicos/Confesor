@@ -1,0 +1,24 @@
+[
+  {
+    "titulo": "TÍTULO DE TU LIBRO",
+    "autor": "Autor",
+    "descripcion": "Sustituye esta entrada por un libro de tu editorial. Los campos url y portada son opcionales; con \"destacado\": true la tarjeta se resalta.",
+    "url": "https://",
+    "destacado": true
+  },
+  {
+    "titulo": "Introducción a la vida devota",
+    "autor": "San Francisco de Sales",
+    "descripcion": "Un clásico para quien quiere tomarse en serio la vida cristiana en medio del mundo. Incluye consejos prácticos sobre la confesión y el examen de conciencia."
+  },
+  {
+    "titulo": "Confesiones",
+    "autor": "San Agustín",
+    "descripcion": "La historia de una conversión contada en primera persona. Nadie ha descrito mejor el camino de vuelta a Dios."
+  },
+  {
+    "titulo": "Imitación de Cristo",
+    "autor": "Tomás de Kempis",
+    "descripcion": "Breves capítulos para leer despacio, sobre la humildad, la lucha interior y la confianza en Dios."
+  }
+]
