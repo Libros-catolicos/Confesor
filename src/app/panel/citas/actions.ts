@@ -1,14 +1,25 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
+import { notificarRespuestaSacerdote } from '@/lib/notificaciones'
 import { createClient } from '@/lib/supabase/server'
 
 export type CitaState = { error?: string; ok?: string } | undefined
 
 async function actualizarEstado(id: string, status: 'confirmada' | 'completada' | 'no_presentado') {
   const supabase = await createClient()
-  const { error } = await supabase.from('appointments').update({ status }).eq('id', id)
+  const { data, error } = await supabase
+    .from('appointments')
+    .update({ status })
+    .eq('id', id)
+    .select('manage_token')
+    .maybeSingle()
   if (error) console.error('[citas] update:', error.message)
+  if (status === 'confirmada' && data?.manage_token) {
+    const token = data.manage_token
+    after(() => notificarRespuestaSacerdote(token))
+  }
   revalidatePath('/panel')
 }
 
@@ -43,7 +54,11 @@ export async function cancelarCita(_prev: CitaState, formData: FormData): Promis
     return { error: error.message.includes('libre') ? 'Esa hora ya no está libre.' : 'No se ha podido cancelar.' }
   }
 
-  // TODO: avisar al fiel por email/SMS (pendiente de SMTP)
+  const { data: fila } = await supabase.from('appointments').select('manage_token').eq('id', id).maybeSingle()
+  if (fila?.manage_token) {
+    const token = fila.manage_token
+    after(() => notificarRespuestaSacerdote(token))
+  }
   revalidatePath('/panel')
   return { ok: newStartsAt ? 'Propuesta enviada al fiel.' : 'Cita cancelada.' }
 }

@@ -19,3 +19,4 @@
 - Geocodificación con Photon (komoot) y respaldo Nominatim; el alta de lugar es en dos pasos
   (buscar → elegir candidato) porque los geocodificadores fallan con direcciones ambiguas.
 - Zona `/admin`: `requireAdmin()` en cada página y action (rol en `profiles.role`). Para nombrar admin: `update profiles set role = 'admin' where email = ...`.
+- Emails: `src/lib/email.ts` (Resend por REST) y `src/lib/notificaciones.ts`; se disparan con `after()` desde las server actions. Enlaces del sacerdote por email: `/cita/sacerdote/[priest_token]`.

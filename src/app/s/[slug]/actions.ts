@@ -1,6 +1,8 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
+import { notificarNuevaCita } from '@/lib/notificaciones'
 import { createClient } from '@/lib/supabase/server'
 import type { SlotType } from '@/lib/types'
 
@@ -44,6 +46,6 @@ export async function reservar(_prev: ReservaState, formData: FormData): Promise
   const row = (Array.isArray(data) ? data[0] : data) as { manage_token: string } | undefined
   if (!row?.manage_token) return { error: 'No se ha podido completar la reserva.' }
 
-  // TODO: enviar email/SMS de confirmación con el enlace de gestión (pendiente de SMTP)
+  after(() => notificarNuevaCita(row.manage_token))
   redirect(`/cita/${row.manage_token}?nueva=1`)
 }

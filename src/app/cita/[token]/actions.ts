@@ -1,6 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
+import { notificarRespuestaFiel } from '@/lib/notificaciones'
 import { createClient } from '@/lib/supabase/server'
 
 export async function cancelarCita(formData: FormData) {
@@ -8,7 +10,8 @@ export async function cancelarCita(formData: FormData) {
   if (!token) return
 
   const supabase = await createClient()
-  await supabase.rpc('cancel_appointment', { p_token: token })
+  const { data } = await supabase.rpc('cancel_appointment', { p_token: token })
+  if (data) after(() => notificarRespuestaFiel(token))
   revalidatePath(`/cita/${token}`)
 }
 
@@ -27,6 +30,7 @@ export async function aceptarPropuesta(_prev: PropuestaState, formData: FormData
         : 'No se ha podido aceptar la propuesta.',
     }
   }
+  after(() => notificarRespuestaFiel(token))
   revalidatePath(`/cita/${token}`)
   return undefined
 }
