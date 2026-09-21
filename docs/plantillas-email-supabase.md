@@ -72,3 +72,40 @@ Solo se usa si se activa la reautenticación para cambiar contraseña. Por si ac
 
 - **Confirm email:** activado en producción (hoy está desactivado para pruebas).
 - **Secure email change:** activado (pide confirmar el cambio desde el email nuevo).
+
+---
+
+## Avisos de seguridad (Authentication → Emails → Templates → Security)
+
+Activar solo **Password changed** y **Email address changed**. El resto (teléfono, métodos de acceso, MFA) no se usan.
+
+### Password changed
+
+**Subject:** `Tu contraseña de Confesor ha cambiado`
+
+```html
+<p>Hola.</p>
+<p>Te avisamos de que la contraseña de tu cuenta de Confesor ({{ .Email }}) se ha cambiado hace un momento.</p>
+<p>Si has sido tú, no tienes que hacer nada.</p>
+<p>Si no has sido tú, entra cuanto antes en <a href="{{ .SiteURL }}/recuperar">{{ .SiteURL }}/recuperar</a> para crear una contraseña nueva, y escríbenos a info@confesor.es.</p>
+<p>— Confesor</p>
+```
+
+### Email address changed
+
+Se envía a la dirección antigua.
+
+**Subject:** `El email de tu cuenta de Confesor ha cambiado`
+
+```html
+<p>Hola.</p>
+<p>Te avisamos de que el email de tu cuenta de Confesor se ha cambiado hace un momento. A partir de ahora entrarás con la dirección nueva.</p>
+<p>Si has sido tú, no tienes que hacer nada.</p>
+<p>Si no has sido tú, escríbenos cuanto antes a info@confesor.es desde esta misma dirección para que podamos ayudarte.</p>
+<p>— Confesor</p>
+```
+
+## SMTP actual
+
+Correo Profesional de Arsys: host `smtp.serviciodecorreo.es`, puerto 465, usuario `info@confesor.es`.
+Remitente `Confesor <info@confesor.es>`. Pendiente de pasar a Resend cuando el dominio esté verificado allí.
