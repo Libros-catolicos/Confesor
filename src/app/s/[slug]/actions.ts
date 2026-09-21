@@ -20,7 +20,6 @@ export async function reservar(_prev: ReservaState, formData: FormData): Promise
   const language = String(formData.get('language') ?? '')
   const name = String(formData.get('guest_name') ?? '').trim()
   const email = String(formData.get('guest_email') ?? '').trim()
-  const phone = String(formData.get('guest_phone') ?? '').trim()
   const consent = formData.get('consent') === 'on'
   const forMinor = formData.get('for_minor') === 'on'
   const reminder = formData.get('reminder') === 'on'
@@ -28,10 +27,8 @@ export async function reservar(_prev: ReservaState, formData: FormData): Promise
 
   if (!priestId || !placeId || !startsAt || !type) return { error: 'Selecciona un hueco.' }
   if (name.length < 2) return { error: 'Indica tu nombre (puede ser solo el nombre de pila).' }
-  if (!email && !phone) return { error: 'Indica un email o un teléfono para confirmarte la cita.' }
-  if (email && !EMAIL_RE.test(email)) return { error: 'El email no parece válido.' }
+  if (!EMAIL_RE.test(email)) return { error: 'Indica un email válido para confirmarte la cita.' }
   if (!consent) return { error: 'Para reservar necesitamos tu consentimiento expreso.' }
-  if (newsletter && !email) return { error: 'Para suscribirte a las recomendaciones necesitamos tu email.' }
 
   const supabase = await createClient()
   const { data, error } = await supabase.rpc('book_appointment', {
@@ -41,8 +38,7 @@ export async function reservar(_prev: ReservaState, formData: FormData): Promise
     p_type: type,
     p_language: language,
     p_guest_name: name,
-    p_guest_email: email || null,
-    p_guest_phone: phone || null,
+    p_guest_email: email,
     p_for_minor: forMinor,
     p_reminder: reminder,
   })
@@ -59,15 +55,14 @@ export async function reservar(_prev: ReservaState, formData: FormData): Promise
   if (!row?.manage_token) return { error: 'No se ha podido completar la reserva.' }
 
   // Prueba del consentimiento (solo inserción; nunca bloquea la reserva)
-  const sujeto = email || phone
-  await registrarConsentimiento({ subjectType: 'booking', subjectId: row.appointment_id, email: sujeto, kind: 'service', text: CONSENT_TEXT.booking })
+  await registrarConsentimiento({ subjectType: 'booking', subjectId: row.appointment_id, email, kind: 'service', text: CONSENT_TEXT.booking })
   if (forMinor) {
-    await registrarConsentimiento({ subjectType: 'booking', subjectId: row.appointment_id, email: sujeto, kind: 'minor_guardian', text: CONSENT_TEXT.minor })
+    await registrarConsentimiento({ subjectType: 'booking', subjectId: row.appointment_id, email, kind: 'minor_guardian', text: CONSENT_TEXT.minor })
   }
-  if (reminder && email) {
+  if (reminder) {
     await registrarConsentimiento({ subjectType: 'booking', subjectId: row.appointment_id, email, kind: 'reminders', text: CONSENT_TEXT.reminders })
   }
-  if (newsletter && email) {
+  if (newsletter) {
     await suscribirNewsletter(email, name, 'booking')
     await registrarConsentimiento({ subjectType: 'newsletter', email, kind: 'newsletter', text: CONSENT_TEXT.newsletter })
   }

@@ -134,4 +134,4 @@ select public.book_appointment('00000000-0000-0000-0000-000000000104', '00000000
   'confesion', 'es', 'María', 'maria@demo.confesor.local');
 select public.book_appointment('00000000-0000-0000-0000-000000000101', '00000000-0000-0000-0000-000000000201',
   (select min(starts_at) from public.priest_free_slots('00000000-0000-0000-0000-000000000101', current_date, current_date + 7) where type = 'confesion'),
-  'confesion', 'en', 'John', null, '+34600000000');
+  'confesion', 'en', 'John', 'john@demo.confesor.local');

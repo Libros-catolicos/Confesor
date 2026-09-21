@@ -10,7 +10,9 @@ import { borrarConfesion } from './actions'
 
 export const metadata = { title: 'Mi cuenta' }
 
-type CitaConLugar = Appointment & { places: Pick<Place, 'name' | 'timezone'> | null }
+type CitaConLugar = Pick<Appointment, 'id' | 'starts_at' | 'type' | 'status' | 'manage_token'> & {
+  places: Pick<Place, 'name' | 'timezone'> | null
+}
 interface Confesion {
   id: string
   confessed_on: string
@@ -41,7 +43,7 @@ export default async function MiCuentaPage() {
     supabase.rpc('last_confession'),
     supabase
       .from('appointments')
-      .select('*, places(name, timezone)')
+      .select('id, starts_at, type, status, manage_token, places(name, timezone)')
       .eq('user_id', user.id)
       .in('status', ['pendiente', 'confirmada', 'reprogramar'])
       .gte('starts_at', ahora)
@@ -49,7 +51,7 @@ export default async function MiCuentaPage() {
       .returns<CitaConLugar[]>(),
     supabase
       .from('appointments')
-      .select('*, places(name, timezone)')
+      .select('id, starts_at, type, status, manage_token, places(name, timezone)')
       .eq('user_id', user.id)
       .lt('starts_at', ahora)
       .order('starts_at', { ascending: false })

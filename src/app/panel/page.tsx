@@ -5,7 +5,9 @@ import { SLOT_TYPE_LABEL, type Appointment, type Place } from '@/lib/types'
 
 export const metadata = { title: 'Mi panel' }
 
-type CitaConLugar = Appointment & { places: Pick<Place, 'name' | 'timezone'> | null }
+type CitaConLugar = Pick<Appointment, 'id' | 'starts_at' | 'type' | 'status' | 'guest_name' | 'arrived_at'> & {
+  places: Pick<Place, 'name' | 'timezone'> | null
+}
 
 export default async function PanelPage() {
   const supabase = await createClient()
@@ -18,7 +20,7 @@ export default async function PanelPage() {
     supabase.from('availability_rules').select('*', { count: 'exact', head: true }).eq('priest_id', user!.id),
     supabase
       .from('appointments')
-      .select('*, places(name, timezone)')
+      .select('id, starts_at, type, status, guest_name, arrived_at, places(name, timezone)')
       .eq('priest_id', user!.id)
       .in('status', ['pendiente', 'confirmada'])
       .gte('starts_at', new Date().toISOString())

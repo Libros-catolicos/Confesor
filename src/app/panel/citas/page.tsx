@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { fmtFechaHora } from '@/lib/fechas'
+import { fmtFechaHora, fmtHora } from '@/lib/fechas'
 import { nombreIdioma } from '@/lib/idiomas'
 import {
   APPOINTMENT_STATUS_LABEL,
@@ -14,7 +14,9 @@ import { CancelarCita } from './CancelarCita'
 
 export const metadata = { title: 'Citas' }
 
-type CitaConLugar = Appointment & { places: Pick<Place, 'id' | 'name' | 'timezone'> | null }
+type CitaConLugar = Omit<Appointment, 'guest_email' | 'manage_token' | 'user_id' | 'reminder_sent_at' | 'reminder_opt_in' | 'created_at' | 'updated_at'> & {
+  places: Pick<Place, 'id' | 'name' | 'timezone'> | null
+}
 
 const ESTILO: Record<string, string> = {
   pendiente: 'bg-amber-50 text-amber-800',
@@ -42,7 +44,7 @@ export default async function CitasPage({ searchParams }: PageProps<'/panel/cita
 
   let q = supabase
     .from('appointments')
-    .select('*, places(id, name, timezone)')
+    .select('id, priest_id, place_id, starts_at, ends_at, type, language, status, guest_name, cancelled_by, cancel_message, proposed_starts_at, proposed_ends_at, for_minor, arrived_at, places(id, name, timezone)')
     .eq('priest_id', user!.id)
   q =
     vista === 'pasadas'
@@ -101,21 +103,11 @@ export default async function CitasPage({ searchParams }: PageProps<'/panel/cita
                     </p>
                     <p className="mt-2">
                       <span className="font-medium">{c.guest_name}</span>
-                      {c.guest_email && (
-                        <>
-                          {' · '}
-                          <a href={`mailto:${c.guest_email}`} className="text-accent underline">
-                            {c.guest_email}
-                          </a>
-                        </>
-                      )}
-                      {c.guest_phone && (
-                        <>
-                          {' · '}
-                          <a href={`tel:${c.guest_phone}`} className="text-accent underline">
-                            {c.guest_phone}
-                          </a>
-                        </>
+                      {c.for_minor && <span className="ml-2 text-xs text-muted">(cita para un menor, reserva su tutor)</span>}
+                      {c.arrived_at && (
+                        <span className="ml-2 rounded-full bg-green-50 px-1.5 py-0.5 text-xs text-green-800">
+                          Ha llegado · {fmtHora(c.arrived_at, tz)}
+                        </span>
                       )}
                     </p>
                     {c.status === 'reprogramar' && c.proposed_starts_at && (

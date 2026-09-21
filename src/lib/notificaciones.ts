@@ -1,11 +1,15 @@
-// Notificaciones por email de las citas. Cada función lee los datos de la cita
-// con un token (del fiel o del sacerdote) y envía lo que corresponda.
+// Notificaciones por email de las citas. Cada función carga la cita por su token
+// (del fiel o del sacerdote) con la clave de servicio: el email del fiel no es
+// legible por ningún cliente, solo por el servidor en el momento de enviar.
 // Se llaman desde server actions con after(), para no retrasar la respuesta.
+//
+// Regla del documento legal: el sacerdote nunca recibe el contacto del fiel;
+// los asuntos son neutros (nunca la palabra "confesión").
 
-import { createClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { bloqueComercial, enviarEmail, plantilla } from '@/lib/email'
 import { estaSuscrito, tokenDeBaja } from '@/lib/consentimiento'
-import { fmtFechaHora } from '@/lib/fechas'
+import { fmtFechaHora, fmtHora } from '@/lib/fechas'
 import { nombreIdioma } from '@/lib/idiomas'
 import { siteUrl } from '@/lib/site'
 import { SLOT_TYPE_LABEL, type AppointmentStatus, type SlotType } from '@/lib/types'
@@ -22,43 +26,45 @@ interface Datos {
   cancelled_by: 'sacerdote' | 'fiel' | null
   guest_name: string
   guest_email: string | null
-  guest_phone: string | null
   manage_token: string
   priest_token: string
-  priest_name: string
-  priest_email: string
-  priest_slug: string
-  auto_confirm: boolean
-  place_name: string
-  address: string
-  city: string | null
-  timezone: string
+  arrived_at: string | null
+  priests: { display_name: string; slug: string } | null
+  places: { name: string; address: string; city: string | null; timezone: string } | null
 }
 
-// Cliente sin sesión: la RPC es security definer y se llama con un token secreto.
-// Así funciona también dentro de after(), fuera del contexto de la petición.
-function clienteAnonimo() {
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  })
+async function cargar(token: string): Promise<(Datos & { priest_email: string | null }) | null> {
+  try {
+    const db = createAdminClient()
+    const { data, error } = await db
+      .from('appointments')
+      .select(
+        'id, status, type, language, starts_at, ends_at, proposed_starts_at, cancel_message, cancelled_by, guest_name, guest_email, manage_token, priest_token, arrived_at, priest_id, priests(display_name, slug), places(name, address, city, timezone)'
+      )
+      .or(`manage_token.eq.${token},priest_token.eq.${token}`)
+      .maybeSingle<Datos & { priest_id: string }>()
+    if (error || !data) {
+      if (error) console.error('[notificaciones] cargar:', error.message)
+      return null
+    }
+    const { data: perfil } = await db.from('profiles').select('email').eq('id', data.priest_id).maybeSingle()
+    return { ...data, priest_email: perfil?.email ?? null }
+  } catch (e) {
+    console.error('[notificaciones]', e)
+    return null
+  }
 }
 
-async function cargar(token: string): Promise<Datos | null> {
-  const supabase = clienteAnonimo()
-  const { data, error } = await supabase.rpc('get_appointment_notification', { p_token: token })
-  if (error) console.error('[notificaciones] cargar:', error.message)
-  return (data as Datos[] | null)?.[0] ?? null
-}
-
-const cuando = (d: Datos, iso = d.starts_at) => fmtFechaHora(iso, d.timezone)
-const lugar = (d: Datos) => `${d.place_name}, ${d.address}${d.city ? `, ${d.city}` : ''}`
+const tz = (d: Datos) => d.places?.timezone ?? 'Europe/Madrid'
+const cuando = (d: Datos, iso = d.starts_at) => fmtFechaHora(iso, tz(d))
+const lugar = (d: Datos) => `${d.places?.name}, ${d.places?.address}${d.places?.city ? `, ${d.places.city}` : ''}`
+const nombreSacerdote = (d: Datos) => d.priests?.display_name ?? 'el sacerdote'
 const resumenHtml = (d: Datos, iso = d.starts_at) =>
   `<p><strong>${SLOT_TYPE_LABEL[d.type]}</strong> · ${cuando(d, iso)}<br>${lugar(d)}<br>Idioma: ${nombreIdioma(d.language)}</p>`
 const resumenTexto = (d: Datos, iso = d.starts_at) =>
   `${SLOT_TYPE_LABEL[d.type]} · ${cuando(d, iso)}\n${lugar(d)}\nIdioma: ${nombreIdioma(d.language)}`
-const contacto = (d: Datos) => [d.guest_email, d.guest_phone].filter(Boolean).join(' · ')
 
-/** Tras reservar: aviso al sacerdote (con Confirmar/Rechazar) y confirmación al fiel */
+/** Tras reservar: aviso al sacerdote (solo nombre; Confirmar/Rechazar) y confirmación al fiel */
 export async function notificarNuevaCita(manageToken: string) {
   const d = await cargar(manageToken)
   if (!d) return
@@ -67,43 +73,44 @@ export async function notificarNuevaCita(manageToken: string) {
   const urlFiel = `${base}/cita/${d.manage_token}`
   const pendiente = d.status === 'pendiente'
 
-  await enviarEmail({
-    to: d.priest_email,
-    replyTo: d.guest_email ?? undefined,
-    subject: pendiente
-      ? `Nueva solicitud de cita: ${d.guest_name}, ${cuando(d)}`
-      : `Nueva cita reservada: ${d.guest_name}, ${cuando(d)}`,
-    html: plantilla(
-      pendiente ? 'Nueva solicitud de cita' : 'Nueva cita reservada',
-      `<p><strong>${d.guest_name}</strong> ha ${pendiente ? 'solicitado' : 'reservado'} una cita contigo.</p>
-       ${resumenHtml(d)}
-       <p>Contacto: ${contacto(d) || 'no indicado'}</p>
-       ${pendiente ? '<p>La cita queda <strong>pendiente</strong> hasta que la confirmes.</p>' : '<p>La cita está <strong>confirmada</strong>. Si no puedes atenderla, cancélala o propón otra hora.</p>'}`,
-      pendiente
-        ? { texto: 'Confirmar', url: `${urlSacerdote}?accion=confirmar`, secundario: { texto: 'Rechazar', url: `${urlSacerdote}?accion=rechazar` } }
-        : { texto: 'Ver la cita', url: urlSacerdote }
-    ),
-    text: `${d.guest_name} ha ${pendiente ? 'solicitado' : 'reservado'} una cita contigo.\n\n${resumenTexto(d)}\nContacto: ${contacto(d) || 'no indicado'}\n\n${
-      pendiente ? `Confirmar o rechazar: ${urlSacerdote}` : `Ver la cita: ${urlSacerdote}`
-    }`,
-  })
+  if (d.priest_email) {
+    await enviarEmail({
+      to: d.priest_email,
+      subject: pendiente
+        ? `Nueva solicitud de cita: ${d.guest_name}, ${cuando(d)}`
+        : `Nueva cita reservada: ${d.guest_name}, ${cuando(d)}`,
+      html: plantilla(
+        pendiente ? 'Nueva solicitud de cita' : 'Nueva cita reservada',
+        `<p><strong>${d.guest_name}</strong> ha ${pendiente ? 'solicitado' : 'reservado'} una cita contigo.</p>
+         ${resumenHtml(d)}
+         ${pendiente ? '<p>La cita queda <strong>pendiente</strong> hasta que la confirmes.</p>' : '<p>La cita está <strong>confirmada</strong>. Si no puedes atenderla, cancélala o propón otra hora desde tu panel.</p>'}
+         <p style="font-size:12px;color:#6b625c">Por privacidad no te mostramos los datos de contacto del fiel: Confesor le avisa de todo lo que hagas con la cita.</p>`,
+        pendiente
+          ? { texto: 'Confirmar', url: `${urlSacerdote}?accion=confirmar`, secundario: { texto: 'Rechazar', url: `${urlSacerdote}?accion=rechazar` } }
+          : { texto: 'Ver la cita', url: urlSacerdote }
+      ),
+      text: `${d.guest_name} ha ${pendiente ? 'solicitado' : 'reservado'} una cita contigo.\n\n${resumenTexto(d)}\n\n${
+        pendiente ? `Confirmar o rechazar: ${urlSacerdote}` : `Ver la cita: ${urlSacerdote}`
+      }`,
+    })
+  }
 
   if (d.guest_email) {
     // Bloque comercial solo si el destinatario está suscrito (decisión en servidor, al enviar)
     const comercial = (await estaSuscrito(d.guest_email)) ? bloqueComercial(await tokenDeBaja(d.guest_email)) : null
     await enviarEmail({
       to: d.guest_email,
-      subject: pendiente ? `Solicitud enviada a ${d.priest_name}` : `Cita confirmada con ${d.priest_name}`,
+      subject: pendiente ? `Solicitud enviada a ${nombreSacerdote(d)}` : `Cita confirmada con ${nombreSacerdote(d)}`,
       html: plantilla(
         pendiente ? 'Solicitud enviada' : 'Cita reservada',
         `<p>Hola, ${d.guest_name}.</p>
-         <p>${pendiente ? `Tu solicitud ha llegado a <strong>${d.priest_name}</strong>. Te avisaremos cuando la confirme.` : `Tu cita con <strong>${d.priest_name}</strong> está confirmada.`}</p>
+         <p>${pendiente ? `Tu solicitud ha llegado a <strong>${nombreSacerdote(d)}</strong>. Te avisaremos cuando la confirme.` : `Tu cita con <strong>${nombreSacerdote(d)}</strong> está confirmada.`}</p>
          ${resumenHtml(d)}
-         <p>Desde el enlace puedes consultar la cita, añadirla a tu calendario o cancelarla si no puedes acudir.</p>`,
+         <p>Desde el enlace puedes consultar la cita, añadirla a tu calendario, avisar de que has llegado o cancelarla si no puedes acudir.</p>`,
         { texto: 'Ver mi cita', url: urlFiel },
         comercial?.html ?? ''
       ),
-      text: `Hola, ${d.guest_name}.\n\n${pendiente ? `Tu solicitud ha llegado a ${d.priest_name}. Te avisaremos cuando la confirme.` : `Tu cita con ${d.priest_name} está confirmada.`}\n\n${resumenTexto(d)}\n\nGestiona tu cita: ${urlFiel}${comercial?.text ?? ''}`,
+      text: `Hola, ${d.guest_name}.\n\n${pendiente ? `Tu solicitud ha llegado a ${nombreSacerdote(d)}. Te avisaremos cuando la confirme.` : `Tu cita con ${nombreSacerdote(d)} está confirmada.`}\n\n${resumenTexto(d)}\n\nGestiona tu cita: ${urlFiel}${comercial?.text ?? ''}`,
     })
   }
 }
@@ -113,25 +120,27 @@ export async function notificarRespuestaSacerdote(token: string) {
   const d = await cargar(token)
   if (!d?.guest_email) return
   const urlFiel = `${siteUrl()}/cita/${d.manage_token}`
+  const sacerdote = nombreSacerdote(d)
+  const urlFicha = `${siteUrl()}/s/${d.priests?.slug ?? ''}`
   let titulo: string, cuerpo: string, texto: string
 
   if (d.status === 'confirmada') {
-    titulo = `Cita confirmada con ${d.priest_name}`
-    cuerpo = `<p>Hola, ${d.guest_name}. <strong>${d.priest_name}</strong> ha confirmado tu cita.</p>${resumenHtml(d)}`
-    texto = `${d.priest_name} ha confirmado tu cita.\n\n${resumenTexto(d)}`
+    titulo = `Cita confirmada con ${sacerdote}`
+    cuerpo = `<p>Hola, ${d.guest_name}. <strong>${sacerdote}</strong> ha confirmado tu cita.</p>${resumenHtml(d)}`
+    texto = `${sacerdote} ha confirmado tu cita.\n\n${resumenTexto(d)}`
   } else if (d.status === 'reprogramar' && d.proposed_starts_at) {
-    titulo = `${d.priest_name} propone otra hora`
-    cuerpo = `<p>Hola, ${d.guest_name}. <strong>${d.priest_name}</strong> no puede atenderte a la hora reservada (${cuando(d)}) y te propone:</p>
+    titulo = `${sacerdote} propone otra hora`
+    cuerpo = `<p>Hola, ${d.guest_name}. <strong>${sacerdote}</strong> no puede atenderte a la hora reservada (${cuando(d)}) y te propone:</p>
       ${resumenHtml(d, d.proposed_starts_at)}
       ${d.cancel_message ? `<p><em>«${d.cancel_message}»</em></p>` : ''}
-      <p>Puedes aceptar la nueva hora o rechazarla desde tu enlace.</p>`
-    texto = `${d.priest_name} no puede atenderte a la hora reservada y te propone: ${cuando(d, d.proposed_starts_at)}.${d.cancel_message ? `\nMensaje: ${d.cancel_message}` : ''}\n\nAcepta o rechaza la propuesta: ${urlFiel}`
+      <p>Puedes aceptar la nueva hora o, si no te va bien, rechazarla y reservar otra desde su ficha.</p>`
+    texto = `${sacerdote} no puede atenderte a la hora reservada y te propone: ${cuando(d, d.proposed_starts_at)}.${d.cancel_message ? `\nMensaje: ${d.cancel_message}` : ''}\n\nAcepta o rechaza la propuesta: ${urlFiel}`
   } else if (d.status === 'cancelada') {
-    titulo = `Cita cancelada por ${d.priest_name}`
-    cuerpo = `<p>Hola, ${d.guest_name}. Lo sentimos: <strong>${d.priest_name}</strong> ha tenido que cancelar la cita del ${cuando(d)}.</p>
+    titulo = `Cita cancelada por ${sacerdote}`
+    cuerpo = `<p>Hola, ${d.guest_name}. Lo sentimos: <strong>${sacerdote}</strong> ha tenido que cancelar la cita del ${cuando(d)}.</p>
       ${d.cancel_message ? `<p><em>«${d.cancel_message}»</em></p>` : ''}
       <p>Puedes reservar otra hora desde su ficha.</p>`
-    texto = `${d.priest_name} ha tenido que cancelar la cita del ${cuando(d)}.${d.cancel_message ? `\nMensaje: ${d.cancel_message}` : ''}\n\nReservar otra: ${siteUrl()}/s/${d.priest_slug}`
+    texto = `${sacerdote} ha tenido que cancelar la cita del ${cuando(d)}.${d.cancel_message ? `\nMensaje: ${d.cancel_message}` : ''}\n\nReservar otra: ${urlFicha}`
   } else {
     return
   }
@@ -141,16 +150,16 @@ export async function notificarRespuestaSacerdote(token: string) {
     subject: titulo,
     html: plantilla(titulo, cuerpo, {
       texto: d.status === 'cancelada' ? 'Reservar otra hora' : 'Ver mi cita',
-      url: d.status === 'cancelada' ? `${siteUrl()}/s/${d.priest_slug}` : urlFiel,
+      url: d.status === 'cancelada' ? urlFicha : urlFiel,
     }),
     text: texto,
   })
 }
 
-/** El fiel ha cancelado o ha aceptado la nueva hora → aviso al sacerdote */
+/** El fiel ha cancelado o ha aceptado la nueva hora → aviso al sacerdote (solo nombre) */
 export async function notificarRespuestaFiel(manageToken: string) {
   const d = await cargar(manageToken)
-  if (!d) return
+  if (!d?.priest_email) return
   const urlSacerdote = `${siteUrl()}/cita/sacerdote/${d.priest_token}`
 
   if (d.status === 'cancelada' && d.cancelled_by === 'fiel') {
@@ -164,8 +173,24 @@ export async function notificarRespuestaFiel(manageToken: string) {
     await enviarEmail({
       to: d.priest_email,
       subject: `${d.guest_name} ha aceptado la nueva hora: ${cuando(d)}`,
-      html: plantilla('Nueva hora aceptada', `<p><strong>${d.guest_name}</strong> ha aceptado la hora que propusiste.</p>${resumenHtml(d)}<p>Contacto: ${contacto(d) || 'no indicado'}</p>`, { texto: 'Ver la cita', url: urlSacerdote }),
-      text: `${d.guest_name} ha aceptado la hora que propusiste.\n\n${resumenTexto(d)}\nContacto: ${contacto(d) || 'no indicado'}\n\n${urlSacerdote}`,
+      html: plantilla('Nueva hora aceptada', `<p><strong>${d.guest_name}</strong> ha aceptado la hora que propusiste.</p>${resumenHtml(d)}`, { texto: 'Ver la cita', url: urlSacerdote }),
+      text: `${d.guest_name} ha aceptado la hora que propusiste.\n\n${resumenTexto(d)}\n\n${urlSacerdote}`,
     })
   }
+}
+
+/** El fiel ha pulsado "Ya estoy aquí" → aviso inmediato al sacerdote */
+export async function notificarLlegada(manageToken: string) {
+  const d = await cargar(manageToken)
+  if (!d?.priest_email) return
+  const hora = d.arrived_at ? fmtHora(d.arrived_at, tz(d)) : ''
+  await enviarEmail({
+    to: d.priest_email,
+    subject: `${d.guest_name} ya está en ${d.places?.name ?? 'la parroquia'}`,
+    html: plantilla(
+      `${d.guest_name} ha llegado`,
+      `<p><strong>${d.guest_name}</strong> avisa de que ya está en ${d.places?.name ?? 'el lugar de la cita'}${hora ? ` (${hora})` : ''}.</p>${resumenHtml(d)}`
+    ),
+    text: `${d.guest_name} avisa de que ya está en ${d.places?.name ?? 'el lugar de la cita'}${hora ? ` (${hora})` : ''}.\n\n${resumenTexto(d)}`,
+  })
 }

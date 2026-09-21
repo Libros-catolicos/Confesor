@@ -208,27 +208,16 @@ export function SlotPicker({
                 name="guest_email"
                 type="email"
                 autoComplete="email"
+                required
                 defaultValue={fiel?.email ?? ''}
                 className="input"
               />
               <p className="mt-1 text-xs text-muted">Usa un correo personal, no uno de trabajo o compartido.</p>
             </div>
-            <div>
-              <label htmlFor="guest_phone" className="label">
-                Teléfono
-              </label>
-              <input
-                id="guest_phone"
-                name="guest_phone"
-                type="tel"
-                autoComplete="tel"
-                className="input"
-              />
-            </div>
           </div>
           <p className="text-xs text-muted">
-            Email o teléfono, al menos uno. Solo lo verá el sacerdote, para confirmarte o avisarte de
-            cambios.
+            El sacerdote solo verá tu nombre. Tu email lo usa Confesor para confirmarte la cita y avisarte
+            de cambios; nunca se lo mostramos.
             {fiel && ' La cita quedará guardada en tu cuenta.'}
           </p>
 

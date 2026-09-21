@@ -17,8 +17,7 @@ interface Datos {
   starts_at: string
   ends_at: string
   guest_name: string
-  guest_email: string | null
-  guest_phone: string | null
+  arrived_at: string | null
   priest_name: string
   place_name: string
   address: string
@@ -69,22 +68,7 @@ export default async function CitaSacerdotePage({ params, searchParams }: PagePr
             <dt className="text-muted">Fiel</dt>
             <dd>
               <span className="font-medium">{cita.guest_name}</span>
-              {cita.guest_email && (
-                <>
-                  {' · '}
-                  <a href={`mailto:${cita.guest_email}`} className="text-accent underline">
-                    {cita.guest_email}
-                  </a>
-                </>
-              )}
-              {cita.guest_phone && (
-                <>
-                  {' · '}
-                  <a href={`tel:${cita.guest_phone}`} className="text-accent underline">
-                    {cita.guest_phone}
-                  </a>
-                </>
-              )}
+              {cita.arrived_at && <span className="ml-2 text-xs text-green-800">ha avisado de que ha llegado</span>}
             </dd>
           </div>
           <div>

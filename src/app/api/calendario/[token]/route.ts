@@ -11,9 +11,8 @@ interface FeedRow {
   type: SlotType
   status: AppointmentStatus
   guest_name: string
-  guest_email: string | null
-  guest_phone: string | null
   language: string
+  arrived_at: string | null
   updated_at: string
   place_name: string
   address: string
@@ -41,9 +40,8 @@ export async function GET(_req: NextRequest, ctx: RouteContext<'/api/calendario/
     summary: `${SLOT_TYPE_LABEL[r.type]}: ${r.guest_name}`,
     description: [
       `Idioma: ${nombreIdioma(r.language)}`,
-      r.guest_email ? `Email: ${r.guest_email}` : null,
-      r.guest_phone ? `Teléfono: ${r.guest_phone}` : null,
       r.status === 'pendiente' ? 'Pendiente de confirmar en Confesor' : null,
+      r.arrived_at ? 'El fiel ha avisado de que ha llegado' : null,
     ]
       .filter(Boolean)
       .join('\n'),

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { after } from 'next/server'
-import { notificarRespuestaFiel } from '@/lib/notificaciones'
+import { notificarLlegada, notificarRespuestaFiel } from '@/lib/notificaciones'
 import { createClient } from '@/lib/supabase/server'
 
 export async function cancelarCita(formData: FormData) {
@@ -21,6 +21,15 @@ export async function cambiarRecordatorio(formData: FormData) {
   if (!token) return
   const supabase = await createClient()
   await supabase.rpc('set_reminder_by_token', { p_token: token, p_enabled: enabled })
+  revalidatePath(`/cita/${token}`)
+}
+
+export async function avisarLlegada(formData: FormData) {
+  const token = String(formData.get('token') ?? '')
+  if (!token) return
+  const supabase = await createClient()
+  const { data } = await supabase.rpc('mark_arrived', { p_token: token })
+  if (data) after(() => notificarLlegada(token))
   revalidatePath(`/cita/${token}`)
 }
 

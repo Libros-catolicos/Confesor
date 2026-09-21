@@ -10,7 +10,7 @@ import {
   type AppointmentStatus,
   type SlotType,
 } from '@/lib/types'
-import { cancelarCita, cambiarRecordatorio } from './actions'
+import { avisarLlegada, cancelarCita, cambiarRecordatorio } from './actions'
 import { Propuesta } from './Propuesta'
 
 export const metadata = { title: 'Tu cita' }
@@ -34,7 +34,7 @@ export interface CitaToken {
   city: string | null
   timezone: string
   reminder_opt_in: boolean
-  has_email: boolean
+  arrived_at: string | null
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -50,7 +50,10 @@ export default async function CitaPage({ params, searchParams }: PageProps<'/cit
 
   const nueva = sp.nueva === '1'
   const activa = cita.status === 'pendiente' || cita.status === 'confirmada'
-  const futura = new Date(cita.starts_at) > new Date()
+  const ahora = new Date()
+  const futura = new Date(cita.starts_at) > ahora
+  const enVentanaLlegada =
+    ahora.getTime() >= new Date(cita.starts_at).getTime() - 3600e3 && ahora.getTime() <= new Date(cita.ends_at).getTime()
 
   return (
     <div className="mx-auto w-full max-w-lg py-6">
@@ -129,7 +132,23 @@ export default async function CitaPage({ params, searchParams }: PageProps<'/cit
           </div>
         </dl>
 
-        {activa && futura && cita.has_email && (
+        {activa && enVentanaLlegada && (
+          <div className="mt-5 rounded-lg bg-accent-soft p-4">
+            {cita.arrived_at ? (
+              <p className="text-sm">Has avisado al sacerdote de que has llegado ({fmtHora(cita.arrived_at, cita.timezone)}).</p>
+            ) : (
+              <form action={avisarLlegada} className="flex flex-wrap items-center gap-3">
+                <input type="hidden" name="token" value={token} />
+                <p className="text-sm">¿Ya estás en {cita.place_name}? Avisa al sacerdote de que has llegado.</p>
+                <button type="submit" className="btn-primary">
+                  Ya estoy aquí
+                </button>
+              </form>
+            )}
+          </div>
+        )}
+
+        {activa && futura && (
           <form action={cambiarRecordatorio} className="mt-5 flex items-center gap-2 border-t border-border pt-4 text-sm">
             <input type="hidden" name="token" value={token} />
             <input type="hidden" name="enabled" value={String(!cita.reminder_opt_in)} />

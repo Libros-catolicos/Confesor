@@ -29,3 +29,9 @@
   casillas con textos de `CONSENT_TEXT`; prueba en `consent_log` y lista en `newsletter_subscribers`
   (solo service_role, vía `src/lib/supabase/admin.ts` + `src/lib/consentimiento.ts`). Recordatorios opt-in.
   Asuntos de correo neutros (nunca "confesión"). Bloque comercial B5 solo a suscritos (`src/content/comercial.ts`).
+- Contacto del fiel: solo email (sin teléfono, sin texto libre, nunca el motivo). **El sacerdote solo ve el
+  nombre**: `authenticated` no tiene `select` sobre `appointments.guest_email` (grant por columnas), y las
+  funciones `calendar_feed`/`get_appointment_notification` no lo devuelven. Los correos se envían desde
+  `notificaciones.ts` con `createAdminClient()` (necesita `SUPABASE_SECRET_KEY`; en local no hay, solo log).
+  Sin chat: solo confirmar/rechazar/cancelar proponiendo otra hora, y el botón "Ya estoy aquí" del fiel
+  (`mark_arrived`, ventana 1 h antes → fin de la cita) que avisa al sacerdote por email.

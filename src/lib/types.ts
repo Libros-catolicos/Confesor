@@ -177,7 +177,6 @@ export interface Appointment {
   status: AppointmentStatus
   guest_name: string
   guest_email: string | null
-  guest_phone: string | null
   manage_token: string
   cancelled_by: 'sacerdote' | 'fiel' | null
   cancel_message: string | null
@@ -185,6 +184,9 @@ export interface Appointment {
   proposed_ends_at: string | null
   user_id: string | null
   reminder_sent_at: string | null
+  for_minor: boolean
+  reminder_opt_in: boolean
+  arrived_at: string | null
   created_at: string
   updated_at: string
 }
