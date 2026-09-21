@@ -19,11 +19,16 @@ export default async function AdminLayout({ children }: LayoutProps<'/admin'>) {
           <h1 className="text-xl font-semibold">Administración</h1>
           <p className="text-xs text-muted">Solo visible para administradores</p>
         </div>
-        <form action={logout}>
-          <button type="submit" className="btn-secondary">
-            Salir
-          </button>
-        </form>
+        <div className="flex items-center gap-2">
+          <Link href="/cuenta/contrasena" className="text-sm text-muted underline hover:text-accent">
+            Contraseña
+          </Link>
+          <form action={logout}>
+            <button type="submit" className="btn-secondary">
+              Salir
+            </button>
+          </form>
+        </div>
       </div>
 
       <nav className="-mx-4 flex gap-1 overflow-x-auto border-b border-border px-4 text-sm sm:mx-0 sm:px-0">

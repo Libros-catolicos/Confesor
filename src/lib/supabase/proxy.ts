@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 // Rutas que exigen sesión de sacerdote/admin. Todo lo demás es público:
 // los fieles buscan y reservan sin cuenta.
-const RUTAS_PRIVADAS = ['/panel', '/admin']
+const RUTAS_PRIVADAS = ['/panel', '/admin', '/cuenta']
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })

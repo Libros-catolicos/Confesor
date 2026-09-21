@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useActionState } from 'react'
 import { login } from '../actions'
 
@@ -32,6 +33,9 @@ export function LoginForm({ next }: { next: string }) {
       <button type="submit" className="btn-primary" disabled={pending}>
         {pending ? 'Entrando…' : 'Entrar'}
       </button>
+      <Link href="/recuperar" className="text-center text-sm text-muted underline hover:text-accent">
+        ¿Olvidaste tu contraseña?
+      </Link>
     </form>
   )
 }

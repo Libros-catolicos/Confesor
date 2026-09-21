@@ -66,3 +66,41 @@ export async function logout() {
   await supabase.auth.signOut()
   redirect('/')
 }
+
+export async function recuperarContrasena(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const email = String(formData.get('email') ?? '').trim()
+  if (!email) return { error: 'Indica tu email.' }
+
+  const supabase = await createClient()
+  // El enlace del correo pasa por /auth/callback (intercambia el código por sesión)
+  // y aterriza en la página de cambio de contraseña.
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${siteUrl()}/auth/callback?next=/cuenta/contrasena`,
+  })
+  if (error) console.error('[recuperar]', error.code, error.message)
+
+  // Misma respuesta exista o no la cuenta, para no revelar qué emails están registrados
+  return {
+    ok: 'Si ese email tiene cuenta, recibirás en unos minutos un enlace para crear una contraseña nueva. Revisa también la carpeta de spam.',
+  }
+}
+
+export async function cambiarContrasena(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const password = String(formData.get('password') ?? '')
+  const repetir = String(formData.get('password2') ?? '')
+  if (password.length < 8) return { error: 'La contraseña debe tener al menos 8 caracteres.' }
+  if (password !== repetir) return { error: 'Las dos contraseñas no coinciden.' }
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.updateUser({ password })
+  if (error) {
+    console.error('[contrasena]', error.code, error.message)
+    return {
+      error:
+        error.code === 'same_password'
+          ? 'La contraseña nueva es igual que la anterior.'
+          : 'No se ha podido cambiar la contraseña. Si llegaste desde un enlace de recuperación, puede haber caducado: pide otro.',
+    }
+  }
+  return { ok: 'Contraseña cambiada.' }
+}
