@@ -67,6 +67,9 @@ export default async function MiCuentaPage() {
           <p className="text-xs text-muted">{profile.email}</p>
         </div>
         <div className="flex items-center gap-2">
+          <Link href="/cuenta/email" className="text-sm text-muted underline hover:text-accent">
+            Email
+          </Link>
           <Link href="/cuenta/contrasena" className="text-sm text-muted underline hover:text-accent">
             Contraseña
           </Link>

@@ -138,3 +138,35 @@ export async function cambiarContrasena(_prev: AuthState, formData: FormData): P
   }
   return { ok: 'Contraseña cambiada.' }
 }
+
+export async function cambiarEmail(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const email = String(formData.get('email') ?? '').trim().toLowerCase()
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'El email no parece válido.' }
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'Sesión caducada.' }
+  if (user.email?.toLowerCase() === email) return { error: 'Ese ya es tu email.' }
+
+  // Supabase envía un enlace de confirmación al email nuevo (y, según la configuración,
+  // también al antiguo). El cambio se aplica cuando se confirma; el trigger
+  // on_auth_user_email_changed actualiza profiles.email.
+  const { error } = await supabase.auth.updateUser(
+    { email },
+    { emailRedirectTo: `${siteUrl()}/auth/callback?next=/cuenta/email?ok=1` }
+  )
+  if (error) {
+    console.error('[email]', error.code, error.message)
+    return {
+      error:
+        error.code === 'email_exists'
+          ? 'Ya hay una cuenta con ese email.'
+          : 'No se ha podido iniciar el cambio. Inténtalo de nuevo.',
+    }
+  }
+  return {
+    ok: `Te hemos enviado un enlace a ${email}. El cambio se aplicará cuando lo confirmes; hasta entonces sigues entrando con el email actual.`,
+  }
+}
