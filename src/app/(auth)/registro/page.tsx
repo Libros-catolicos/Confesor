@@ -14,9 +14,9 @@ export default function RegistroPage() {
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         <Link href="/registro/fiel" className="card flex flex-col gap-2 transition-shadow hover:shadow-md">
           <User className="h-6 w-6 text-accent" aria-hidden />
-          <h2 className="font-semibold">Quiero llevar mi registro</h2>
+          <h2 className="font-semibold">Para saber cuándo fue mi última confesión</h2>
           <p className="text-sm text-muted">
-            Guarda tus citas, apunta cuándo te confesaste por última vez y recibe avisos si lo deseas.
+            Guarda tus citas, anota tus confesiones y recibe un aviso si llevas tiempo sin confesarte.
           </p>
         </Link>
         <Link href="/registro/sacerdote" className="card flex flex-col gap-2 transition-shadow hover:shadow-md">

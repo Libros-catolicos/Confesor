@@ -42,10 +42,10 @@ export default function HomePage() {
 
       <section className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-xl bg-accent-soft p-6 text-center">
-          <h2 className="font-semibold">¿Quieres llevar tu registro?</h2>
+          <h2 className="font-semibold">Regístrate para saber cuándo fue tu última confesión</h2>
           <p className="mt-1 text-sm text-muted">
-            Con una cuenta gratuita puedes ver tus citas, anotar cuándo te confesaste por última
-            vez y recibir un aviso cuando lleves tiempo sin hacerlo. Solo guardamos fechas.
+            Guarda tus citas, anota tus confesiones y, si quieres, recibe un aviso cuando lleves
+            tiempo sin confesarte. Es gratis y solo guardamos fechas.
           </p>
           <Link href="/registro/fiel" className="btn-primary mt-4">
             Crear mi cuenta
