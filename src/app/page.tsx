@@ -46,7 +46,7 @@ export default function HomePage() {
           Publica tu parroquia, tus horarios de confesión y los idiomas en los que
           atiendes. Los fieles podrán reservar contigo.
         </p>
-        <Link href="/registro" className="btn-primary mt-4">
+        <Link href="/registro/sacerdote" className="btn-primary mt-4">
           Crear mi ficha
         </Link>
       </section>

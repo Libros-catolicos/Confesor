@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { IDIOMAS } from '@/lib/idiomas'
 import { siteUrl } from '@/lib/site'
+import { homeForRole, type UserRole } from '@/lib/types'
 
 export type AuthState = { error?: string; ok?: string } | undefined
 
@@ -15,10 +16,12 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
   if (!email || !password) return { error: 'Introduce email y contraseña.' }
 
   const supabase = await createClient()
-  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) return { error: 'Email o contraseña incorrectos.' }
 
-  redirect(next.startsWith('/') ? next : '/panel')
+  if (next.startsWith('/') && next !== '/panel') redirect(next)
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).maybeSingle()
+  redirect(homeForRole(profile?.role as UserRole | undefined))
 }
 
 export async function registro(_prev: AuthState, formData: FormData): Promise<AuthState> {
@@ -59,6 +62,37 @@ export async function registro(_prev: AuthState, formData: FormData): Promise<Au
   return {
     ok: 'Te hemos enviado un email para confirmar la cuenta. Revisa tu bandeja de entrada.',
   }
+}
+
+export async function registroFiel(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const fullName = String(formData.get('full_name') ?? '').trim()
+  const email = String(formData.get('email') ?? '').trim()
+  const password = String(formData.get('password') ?? '')
+  const consent = formData.get('consent') === 'on'
+
+  if (fullName.length < 2) return { error: 'Indica tu nombre.' }
+  if (!email) return { error: 'Indica tu email.' }
+  if (password.length < 8) return { error: 'La contraseña debe tener al menos 8 caracteres.' }
+  if (!consent) return { error: 'Necesitamos tu consentimiento para guardar tus datos.' }
+
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      // El trigger handle_new_user crea el perfil con rol fiel (sin ficha de sacerdote)
+      data: { full_name: fullName, role: 'fiel', consent_at: new Date().toISOString() },
+      emailRedirectTo: `${siteUrl()}/auth/callback?next=/mi-cuenta`,
+    },
+  })
+  if (error) {
+    if (error.message.toLowerCase().includes('already')) return { error: 'Ya existe una cuenta con ese email.' }
+    console.error('[registro fiel] signUp:', error.code, error.message)
+    return { error: 'No se ha podido crear la cuenta. Inténtalo de nuevo.' }
+  }
+
+  if (data.session) redirect('/mi-cuenta')
+  return { ok: 'Te hemos enviado un email para confirmar la cuenta. Revisa tu bandeja de entrada.' }
 }
 
 export async function logout() {

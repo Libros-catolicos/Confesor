@@ -1,11 +1,10 @@
 'use client'
 
 import { useActionState } from 'react'
-import { registro } from '../actions'
-import { IDIOMAS } from '@/lib/idiomas'
+import { registroFiel } from '../../actions'
 
-export function RegistroForm() {
-  const [state, action, pending] = useActionState(registro, undefined)
+export function RegistroFielForm() {
+  const [state, action, pending] = useActionState(registroFiel, undefined)
 
   if (state?.ok) {
     return <p className="rounded-lg bg-accent-soft p-4 text-sm">{state.ok}</p>
@@ -15,14 +14,14 @@ export function RegistroForm() {
     <form action={action} className="flex flex-col gap-4">
       <div>
         <label htmlFor="full_name" className="label">
-          Nombre completo
+          Nombre
         </label>
         <input
           id="full_name"
           name="full_name"
-          autoComplete="name"
+          autoComplete="given-name"
           required
-          placeholder="P. Juan Pérez"
+          placeholder="Basta el nombre de pila"
           className="input"
         />
       </div>
@@ -46,23 +45,16 @@ export function RegistroForm() {
           className="input"
         />
       </div>
-      <fieldset>
-        <legend className="label">Idiomas en los que atiendes</legend>
-        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-          {IDIOMAS.map((i) => (
-            <label key={i.code} className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                name="languages"
-                value={i.code}
-                defaultChecked={i.code === 'es'}
-                className="accent-accent"
-              />
-              {i.nombre}
-            </label>
-          ))}
-        </div>
-      </fieldset>
+
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="consent" required className="mt-1 accent-accent" />
+        <span>
+          Acepto que Confesor guarde mi nombre, mi email y las fechas de mis citas y confesiones para
+          gestionarlas y avisarme. Estos datos revelan mis creencias religiosas; solo los veo yo y puedo
+          borrar la cuenta y todo su contenido en cualquier momento.
+        </span>
+      </label>
+
       {state?.error && <p className="text-sm text-red-700">{state.error}</p>}
       <button type="submit" className="btn-primary" disabled={pending}>
         {pending ? 'Creando cuenta…' : 'Crear cuenta'}

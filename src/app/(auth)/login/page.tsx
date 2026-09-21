@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { LoginForm } from './LoginForm'
 
-export const metadata = { title: 'Acceso sacerdotes' }
+export const metadata = { title: 'Entrar' }
 
 export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
   const sp = await searchParams
@@ -9,11 +9,11 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
 
   return (
     <div className="mx-auto w-full max-w-sm py-8">
-      <h1 className="text-2xl font-semibold">Acceso para sacerdotes</h1>
+      <h1 className="text-2xl font-semibold">Entrar</h1>
       <p className="mt-1 text-sm text-muted">
-        Los fieles no necesitan cuenta: pueden{' '}
+        Para reservar una cita no hace falta cuenta:{' '}
         <Link href="/buscar" className="text-accent underline">
-          buscar y reservar directamente
+          busca y reserva directamente
         </Link>
         .
       </p>
@@ -23,9 +23,9 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
       </div>
 
       <p className="mt-4 text-center text-sm text-muted">
-        ¿Aún no tienes ficha?{' '}
+        ¿No tienes cuenta?{' '}
         <Link href="/registro" className="text-accent underline">
-          Regístrate
+          Crear cuenta
         </Link>
       </p>
     </div>

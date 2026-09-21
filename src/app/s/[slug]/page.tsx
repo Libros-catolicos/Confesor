@@ -59,6 +59,15 @@ export default async function PriestPage({ params, searchParams }: PageProps<'/s
 
   const places = (pp ?? []).map((r) => r.places).filter(Boolean)
 
+  // Si hay sesión de fiel, el formulario se rellena solo
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const { data: perfil } = user
+    ? await supabase.from('profiles').select('role, full_name, email').eq('id', user.id).maybeSingle()
+    : { data: null }
+  const fiel = perfil?.role === 'fiel' ? { nombre: perfil.full_name, email: perfil.email } : undefined
+
   return (
     <div className="grid gap-6 md:grid-cols-[1fr_1.3fr]">
       <aside className="flex flex-col gap-4">
@@ -120,6 +129,7 @@ export default async function PriestPage({ params, searchParams }: PageProps<'/s
           places={places}
           slots={(slots ?? []) as FreeSlot[]}
           lugarInicial={lugarInicial}
+          fiel={fiel}
         />
       </section>
     </div>

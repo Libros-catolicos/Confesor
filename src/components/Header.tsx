@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { BookOpen, Cross, Search } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { homeForRole, type UserRole } from '@/lib/types'
 
 const ENLACES = [
   { href: '/buscar', label: 'Buscar sacerdote', Icon: Search },
@@ -15,7 +16,8 @@ export async function Header() {
   const { data: profile } = user
     ? await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
     : { data: null }
-  const esAdmin = profile?.role === 'admin'
+  const role = profile?.role as UserRole | undefined
+  const etiqueta = role === 'admin' ? 'Administración' : role === 'fiel' ? 'Mi cuenta' : 'Mi panel'
 
   return (
     <header className="border-b border-border bg-card">
@@ -36,12 +38,12 @@ export async function Header() {
             </Link>
           ))}
           {user ? (
-            <Link href={esAdmin ? '/admin' : '/panel'} className="btn-primary">
-              {esAdmin ? 'Administración' : 'Mi panel'}
+            <Link href={homeForRole(role)} className="btn-primary">
+              {etiqueta}
             </Link>
           ) : (
             <Link href="/login" className="btn-primary">
-              Soy sacerdote
+              Entrar
             </Link>
           )}
         </nav>

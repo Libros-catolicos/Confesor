@@ -1,6 +1,6 @@
 // Tipos espejo del esquema de supabase/migrations. Mantener sincronizados.
 
-export type UserRole = 'sacerdote' | 'admin'
+export type UserRole = 'sacerdote' | 'admin' | 'fiel'
 export type PriestStatus = 'pendiente' | 'verificado' | 'rechazado' | 'suspendido'
 export type SlotType = 'confesion' | 'conversacion'
 export type AppointmentStatus =
@@ -93,8 +93,18 @@ export interface Profile {
   full_name: string
   email: string
   phone: string | null
+  notify_appointments: boolean
+  reminder_days: number
+  last_nudge_at: string | null
   created_at: string
   updated_at: string
+}
+
+/** Página de inicio según el rol */
+export function homeForRole(role: UserRole | null | undefined) {
+  if (role === 'admin') return '/admin'
+  if (role === 'fiel') return '/mi-cuenta'
+  return '/panel'
 }
 
 export interface Priest {
@@ -173,6 +183,8 @@ export interface Appointment {
   cancel_message: string | null
   proposed_starts_at: string | null
   proposed_ends_at: string | null
+  user_id: string | null
+  reminder_sent_at: string | null
   created_at: string
   updated_at: string
 }

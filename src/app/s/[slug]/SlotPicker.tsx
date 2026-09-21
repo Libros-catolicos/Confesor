@@ -14,12 +14,14 @@ export function SlotPicker({
   places,
   slots,
   lugarInicial,
+  fiel,
 }: {
   priestId: string
   languages: string[]
   places: PlaceLite[]
   slots: FreeSlot[]
   lugarInicial?: string
+  fiel?: { nombre: string; email: string }
 }) {
   const [placeId, setPlaceId] = useState(
     places.some((p) => p.id === lugarInicial) ? lugarInicial! : places[0]?.id ?? ''
@@ -179,6 +181,7 @@ export function SlotPicker({
                 required
                 autoComplete="given-name"
                 placeholder="Basta el nombre de pila"
+                defaultValue={fiel?.nombre ?? ''}
                 className="input"
               />
             </div>
@@ -203,6 +206,7 @@ export function SlotPicker({
                 name="guest_email"
                 type="email"
                 autoComplete="email"
+                defaultValue={fiel?.email ?? ''}
                 className="input"
               />
             </div>
@@ -222,6 +226,7 @@ export function SlotPicker({
           <p className="text-xs text-muted">
             Email o teléfono, al menos uno. Solo lo verá el sacerdote, para confirmarte o avisarte de
             cambios.
+            {fiel && ' La cita quedará guardada en tu cuenta.'}
           </p>
 
           {state?.error && <p className="text-sm text-red-700">{state.error}</p>}

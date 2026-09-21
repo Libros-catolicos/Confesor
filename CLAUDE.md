@@ -20,3 +20,8 @@
   (buscar → elegir candidato) porque los geocodificadores fallan con direcciones ambiguas.
 - Zona `/admin`: `requireAdmin()` en cada página y action (rol en `profiles.role`). Para nombrar admin: `update profiles set role = 'admin' where email = ...`.
 - Emails: `src/lib/email.ts` (Resend por REST) y `src/lib/notificaciones.ts`; se disparan con `after()` desde las server actions. Enlaces del sacerdote por email: `/cita/sacerdote/[priest_token]`.
+- Cuenta de fiel (opcional, rol `fiel`): `/registro/fiel`, `/mi-cuenta`. Solo guarda nombre, email y
+  fechas (tabla `confessions` + citas ligadas por `appointments.user_id`). `delete_my_account()` anonimiza
+  y borra. Los sacerdotes nunca ven el historial. Registro de sacerdote en `/registro/sacerdote`.
+- Cron diario `/api/cron/avisos` (vercel.json): recordatorio de cita el día antes y aviso por tiempo sin
+  confesarse. Requiere `SUPABASE_SECRET_KEY` y `CRON_SECRET` en Vercel.
