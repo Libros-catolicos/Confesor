@@ -18,6 +18,7 @@ interface CitaManana {
   guest_email: string
   manage_token: string
   user_id: string | null
+  reminder_opt_in: boolean
   priests: { display_name: string } | null
   places: { name: string; address: string; city: string | null; timezone: string } | null
 }
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
   const hasta = new Date(Date.now() + 44 * 3600e3).toISOString()
   const { data: citas } = await db
     .from('appointments')
-    .select('id, starts_at, type, guest_name, guest_email, manage_token, user_id, priests(display_name), places(name, address, city, timezone)')
+    .select('id, starts_at, type, guest_name, guest_email, manage_token, user_id, reminder_opt_in, priests(display_name), places(name, address, city, timezone)')
     .in('status', ['pendiente', 'confirmada'])
     .gte('starts_at', desde)
     .lte('starts_at', hasta)
@@ -50,25 +51,29 @@ export async function GET(req: NextRequest) {
     .returns<CitaManana[]>()
 
   for (const c of citas ?? []) {
-    // Si tiene cuenta y ha desactivado el recordatorio, no se envía
-    if (c.user_id) {
+    // Solo con consentimiento: casilla marcada al reservar, o interruptor de la cuenta.
+    // Ambos están apagados por defecto.
+    let quiere = c.reminder_opt_in
+    if (!quiere && c.user_id) {
       const { data: p } = await db.from('profiles').select('notify_appointments').eq('id', c.user_id).maybeSingle()
-      if (p && !p.notify_appointments) {
-        await db.from('appointments').update({ reminder_sent_at: new Date().toISOString() }).eq('id', c.id)
-        continue
-      }
+      quiere = Boolean(p?.notify_appointments)
+    }
+    if (!quiere) {
+      await db.from('appointments').update({ reminder_sent_at: new Date().toISOString() }).eq('id', c.id)
+      continue
     }
     const tz = c.places?.timezone ?? 'Europe/Madrid'
     const cuando = fmtFechaHora(c.starts_at, tz)
     const lugar = `${c.places?.name}, ${c.places?.address}${c.places?.city ? `, ${c.places.city}` : ''}`
     const ok = await enviarEmail({
       to: c.guest_email,
-      subject: `Mañana: ${SLOT_TYPE_LABEL[c.type]} con ${c.priests?.display_name}, ${cuando}`,
+      subject: `Tu cita de mañana, ${cuando}`,
       html: plantilla(
         'Recordatorio de tu cita',
         `<p>Hola, ${c.guest_name}. Te recordamos tu cita de mañana:</p>
          <p><strong>${SLOT_TYPE_LABEL[c.type]}</strong> con ${c.priests?.display_name}<br>${cuando}<br>${lugar}</p>
-         <p>Si no vas a poder acudir, cancélala desde tu enlace para liberar el hueco.</p>`,
+         <p>Si no vas a poder acudir, cancélala desde tu enlace para liberar el hueco.</p>
+         <p style="font-size:12px;color:#6b625c">Recibes este recordatorio porque lo pediste. Puedes desactivarlo desde el enlace de tu cita.</p>`,
         { texto: 'Ver mi cita', url: `${base}/cita/${c.manage_token}` }
       ),
       text: `Te recordamos tu cita de mañana: ${SLOT_TYPE_LABEL[c.type]} con ${c.priests?.display_name}, ${cuando}, ${lugar}.\n\nGestiona tu cita: ${base}/cita/${c.manage_token}`,
@@ -108,11 +113,12 @@ export async function GET(req: NextRequest) {
     const dias = ultima ? Math.floor((Date.now() - ultima.getTime()) / 86400e3) : null
     const ok = await enviarEmail({
       to: f.email,
-      subject: dias ? `Hace ${dias} días de tu última confesión` : 'Un momento para la confesión',
+      subject: 'Un recordatorio de Confesor',
       html: plantilla(
         dias ? `Hace ${dias} días de tu última confesión` : 'Un momento para la confesión',
         `<p>Hola, ${f.full_name}. Nos pediste que te avisáramos cuando llevaras un tiempo sin confesarte.</p>
-         <p>Si quieres, busca un sacerdote cerca de ti y reserva en un minuto. Y si ya te has confesado, anótalo en tu cuenta para que el cálculo esté al día.</p>`,
+         <p>Si quieres, busca un sacerdote cerca de ti y reserva en un minuto. Y si ya te has confesado, anótalo en tu cuenta para que el cálculo esté al día.</p>
+         <p style="font-size:12px;color:#6b625c">Puedes desactivar este aviso cuando quieras desde <a href="${base}/mi-cuenta">Mi cuenta</a>.</p>`,
         { texto: 'Buscar sacerdote', url: `${base}/buscar`, secundario: { texto: 'Mi cuenta', url: `${base}/mi-cuenta` } }
       ),
       text: `Hola, ${f.full_name}. Nos pediste que te avisáramos cuando llevaras un tiempo sin confesarte.${dias ? ` Han pasado ${dias} días.` : ''}\n\nBuscar sacerdote: ${base}/buscar\nMi cuenta: ${base}/mi-cuenta`,

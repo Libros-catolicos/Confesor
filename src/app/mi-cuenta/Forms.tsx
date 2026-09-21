@@ -80,6 +80,13 @@ export function BorrarCuenta() {
         </label>
         <input id="confirmar" name="confirmar" className="input" autoComplete="off" />
       </div>
+      <label className="flex items-start gap-2">
+        <input type="checkbox" name="baja_lista" className="mt-0.5 accent-accent" />
+        <span>
+          Darme de baja también de las recomendaciones de libros por correo, si estaba suscrito. (La
+          suscripción es independiente de la cuenta.)
+        </span>
+      </label>
       <div className="flex gap-2">
         <button type="submit" className="btn-primary bg-red-700 hover:bg-red-800">
           Borrar definitivamente

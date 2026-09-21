@@ -16,6 +16,7 @@ function leerFormulario(formData: FormData) {
     description: String(formData.get('description') ?? '').trim() || null,
     url: url ? (/^https?:\/\//.test(url) ? url : `https://${url}`) : null,
     featured: formData.get('featured') === 'on',
+    affiliate: formData.get('affiliate') === 'on',
     order_index: Number(formData.get('order_index') ?? 99) || 99,
     published: formData.get('published') === 'on',
   }

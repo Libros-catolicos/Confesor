@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/Header'
+import { Footer } from '@/components/Footer'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -40,9 +41,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6">
           {children}
         </main>
-        <footer className="border-t border-border py-6 text-center text-xs text-muted">
-          Confesor · Los datos de las citas solo los ve el sacerdote que te atiende.
-        </footer>
+        <Footer />
       </body>
     </html>
   )

@@ -5,6 +5,7 @@ import { claveDia, fmtFecha, fmtHora } from '@/lib/fechas'
 import { nombreIdioma } from '@/lib/idiomas'
 import { SLOT_TYPE_LABEL, type FreeSlot, type Place, type SlotType } from '@/lib/types'
 import { reservar } from './actions'
+import { CasillaMenor, CasillaNewsletter, CasillaRecordatorio, CasillaServicio } from '@/components/Consentimiento'
 
 type PlaceLite = Pick<Place, 'id' | 'name' | 'address' | 'city' | 'timezone'>
 
@@ -34,6 +35,7 @@ export function SlotPicker({
   const [dia, setDia] = useState<string | null>(null)
   const [slot, setSlot] = useState<FreeSlot | null>(null)
   const [state, action, pending] = useActionState(reservar, undefined)
+  const [consentido, setConsentido] = useState(false)
 
   const place = places.find((p) => p.id === placeId)
   const tz = place?.timezone ?? 'Europe/Madrid'
@@ -209,6 +211,7 @@ export function SlotPicker({
                 defaultValue={fiel?.email ?? ''}
                 className="input"
               />
+              <p className="mt-1 text-xs text-muted">Usa un correo personal, no uno de trabajo o compartido.</p>
             </div>
             <div>
               <label htmlFor="guest_phone" className="label">
@@ -229,9 +232,16 @@ export function SlotPicker({
             {fiel && ' La cita quedará guardada en tu cuenta.'}
           </p>
 
+          <div className="flex flex-col gap-2 border-t border-border/60 pt-3">
+            <CasillaServicio tipo="booking" onChange={setConsentido} />
+            <CasillaRecordatorio />
+            <CasillaMenor />
+          </div>
+          <CasillaNewsletter />
+
           {state?.error && <p className="text-sm text-red-700">{state.error}</p>}
 
-          <button type="submit" className="btn-primary self-start" disabled={pending}>
+          <button type="submit" className="btn-primary self-start" disabled={pending || !consentido}>
             {pending ? 'Reservando…' : 'Confirmar reserva'}
           </button>
         </form>

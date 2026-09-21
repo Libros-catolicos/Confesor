@@ -94,6 +94,10 @@ export function LibroForm({ libro, onDone }: { libro?: Book; onDone?: () => void
           Publicado
         </label>
         <label className="flex items-center gap-2">
+          <input type="checkbox" name="affiliate" defaultChecked={libro?.affiliate ?? false} className="accent-accent" />
+          Enlace de afiliado (comisión)
+        </label>
+        <label className="flex items-center gap-2">
           Orden
           <input
             name="order_index"

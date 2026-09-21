@@ -25,3 +25,7 @@
   y borra. Los sacerdotes nunca ven el historial. Registro de sacerdote en `/registro/sacerdote`.
 - Cron diario `/api/cron/avisos` (vercel.json): recordatorio de cita el día antes y aviso por tiempo sin
   confesarse. Requiere `SUPABASE_SECRET_KEY` y `CRON_SECRET` en Vercel.
+- Legal (fase 1 hecha): textos literales en `src/content/legal/*.ts` (NO reescribir; versión en `src/lib/legal.ts`);
+  casillas con textos de `CONSENT_TEXT`; prueba en `consent_log` y lista en `newsletter_subscribers`
+  (solo service_role, vía `src/lib/supabase/admin.ts` + `src/lib/consentimiento.ts`). Recordatorios opt-in.
+  Asuntos de correo neutros (nunca "confesión"). Bloque comercial B5 solo a suscritos (`src/content/comercial.ts`).

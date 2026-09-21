@@ -3,7 +3,8 @@
 // Se llaman desde server actions con after(), para no retrasar la respuesta.
 
 import { createClient } from '@supabase/supabase-js'
-import { enviarEmail, plantilla } from '@/lib/email'
+import { bloqueComercial, enviarEmail, plantilla } from '@/lib/email'
+import { estaSuscrito, tokenDeBaja } from '@/lib/consentimiento'
 import { fmtFechaHora } from '@/lib/fechas'
 import { nombreIdioma } from '@/lib/idiomas'
 import { siteUrl } from '@/lib/site'
@@ -88,6 +89,8 @@ export async function notificarNuevaCita(manageToken: string) {
   })
 
   if (d.guest_email) {
+    // Bloque comercial solo si el destinatario está suscrito (decisión en servidor, al enviar)
+    const comercial = (await estaSuscrito(d.guest_email)) ? bloqueComercial(await tokenDeBaja(d.guest_email)) : null
     await enviarEmail({
       to: d.guest_email,
       subject: pendiente ? `Solicitud enviada a ${d.priest_name}` : `Cita confirmada con ${d.priest_name}`,
@@ -97,9 +100,10 @@ export async function notificarNuevaCita(manageToken: string) {
          <p>${pendiente ? `Tu solicitud ha llegado a <strong>${d.priest_name}</strong>. Te avisaremos cuando la confirme.` : `Tu cita con <strong>${d.priest_name}</strong> está confirmada.`}</p>
          ${resumenHtml(d)}
          <p>Desde el enlace puedes consultar la cita, añadirla a tu calendario o cancelarla si no puedes acudir.</p>`,
-        { texto: 'Ver mi cita', url: urlFiel }
+        { texto: 'Ver mi cita', url: urlFiel },
+        comercial?.html ?? ''
       ),
-      text: `Hola, ${d.guest_name}.\n\n${pendiente ? `Tu solicitud ha llegado a ${d.priest_name}. Te avisaremos cuando la confirme.` : `Tu cita con ${d.priest_name} está confirmada.`}\n\n${resumenTexto(d)}\n\nGestiona tu cita: ${urlFiel}`,
+      text: `Hola, ${d.guest_name}.\n\n${pendiente ? `Tu solicitud ha llegado a ${d.priest_name}. Te avisaremos cuando la confirme.` : `Tu cita con ${d.priest_name} está confirmada.`}\n\n${resumenTexto(d)}\n\nGestiona tu cita: ${urlFiel}${comercial?.text ?? ''}`,
     })
   }
 }

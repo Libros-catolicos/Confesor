@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/server'
 import { IDIOMAS } from '@/lib/idiomas'
 import { siteUrl } from '@/lib/site'
 import { homeForRole, type UserRole } from '@/lib/types'
+import { CONSENT_TEXT } from '@/lib/legal'
+import { registrarConsentimiento, suscribirNewsletter } from '@/lib/consentimiento'
 
 export type AuthState = { error?: string; ok?: string } | undefined
 
@@ -33,10 +35,14 @@ export async function registro(_prev: AuthState, formData: FormData): Promise<Au
     .map(String)
     .filter((c) => IDIOMAS.some((i) => i.code === c))
 
+  const consent = formData.get('consent') === 'on'
+  const newsletter = formData.get('newsletter') === 'on'
+
   if (fullName.length < 3) return { error: 'Indica tu nombre completo.' }
   if (!email) return { error: 'Indica tu email.' }
   if (password.length < 8) return { error: 'La contraseña debe tener al menos 8 caracteres.' }
   if (languages.length === 0) return { error: 'Selecciona al menos un idioma.' }
+  if (!consent) return { error: 'Necesitamos tu consentimiento expreso para crear la ficha.' }
 
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({
@@ -56,6 +62,12 @@ export async function registro(_prev: AuthState, formData: FormData): Promise<Au
     return { error: 'No se ha podido crear la cuenta. Inténtalo de nuevo.' }
   }
 
+  await registrarConsentimiento({ subjectType: 'priest', subjectId: data.user?.id, email, kind: 'service', text: CONSENT_TEXT.priest })
+  if (newsletter) {
+    await suscribirNewsletter(email, fullName, 'priest')
+    await registrarConsentimiento({ subjectType: 'newsletter', email, kind: 'newsletter', text: CONSENT_TEXT.newsletter })
+  }
+
   // Si la confirmación por email está desactivada llega sesión directa
   if (data.session) redirect('/panel')
 
@@ -69,11 +81,12 @@ export async function registroFiel(_prev: AuthState, formData: FormData): Promis
   const email = String(formData.get('email') ?? '').trim()
   const password = String(formData.get('password') ?? '')
   const consent = formData.get('consent') === 'on'
+  const newsletter = formData.get('newsletter') === 'on'
 
   if (fullName.length < 2) return { error: 'Indica tu nombre.' }
   if (!email) return { error: 'Indica tu email.' }
   if (password.length < 8) return { error: 'La contraseña debe tener al menos 8 caracteres.' }
-  if (!consent) return { error: 'Necesitamos tu consentimiento para guardar tus datos.' }
+  if (!consent) return { error: 'Necesitamos tu consentimiento expreso para crear la cuenta.' }
 
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({
@@ -89,6 +102,12 @@ export async function registroFiel(_prev: AuthState, formData: FormData): Promis
     if (error.message.toLowerCase().includes('already')) return { error: 'Ya existe una cuenta con ese email.' }
     console.error('[registro fiel] signUp:', error.code, error.message)
     return { error: 'No se ha podido crear la cuenta. Inténtalo de nuevo.' }
+  }
+
+  await registrarConsentimiento({ subjectType: 'faithful', subjectId: data.user?.id, email, kind: 'service', text: CONSENT_TEXT.faithful })
+  if (newsletter) {
+    await suscribirNewsletter(email, fullName, 'faithful')
+    await registrarConsentimiento({ subjectType: 'newsletter', email, kind: 'newsletter', text: CONSENT_TEXT.newsletter })
   }
 
   if (data.session) redirect('/mi-cuenta')

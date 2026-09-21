@@ -10,7 +10,7 @@ import {
   type AppointmentStatus,
   type SlotType,
 } from '@/lib/types'
-import { cancelarCita } from './actions'
+import { cancelarCita, cambiarRecordatorio } from './actions'
 import { Propuesta } from './Propuesta'
 
 export const metadata = { title: 'Tu cita' }
@@ -33,6 +33,8 @@ export interface CitaToken {
   address: string
   city: string | null
   timezone: string
+  reminder_opt_in: boolean
+  has_email: boolean
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -126,6 +128,19 @@ export default async function CitaPage({ params, searchParams }: PageProps<'/cit
             <dd>{nombreIdioma(cita.language)}</dd>
           </div>
         </dl>
+
+        {activa && futura && cita.has_email && (
+          <form action={cambiarRecordatorio} className="mt-5 flex items-center gap-2 border-t border-border pt-4 text-sm">
+            <input type="hidden" name="token" value={token} />
+            <input type="hidden" name="enabled" value={String(!cita.reminder_opt_in)} />
+            <span>
+              Recordatorio por correo el día antes: <strong>{cita.reminder_opt_in ? 'activado' : 'desactivado'}</strong>
+            </span>
+            <button type="submit" className="text-accent underline">
+              {cita.reminder_opt_in ? 'Desactivar' : 'Activar'}
+            </button>
+          </form>
+        )}
 
         {activa && futura && (
           <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-border pt-4">

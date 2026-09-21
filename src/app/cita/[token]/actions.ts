@@ -15,6 +15,15 @@ export async function cancelarCita(formData: FormData) {
   revalidatePath(`/cita/${token}`)
 }
 
+export async function cambiarRecordatorio(formData: FormData) {
+  const token = String(formData.get('token') ?? '')
+  const enabled = formData.get('enabled') === 'true'
+  if (!token) return
+  const supabase = await createClient()
+  await supabase.rpc('set_reminder_by_token', { p_token: token, p_enabled: enabled })
+  revalidatePath(`/cita/${token}`)
+}
+
 export type PropuestaState = { error?: string } | undefined
 
 export async function aceptarPropuesta(_prev: PropuestaState, formData: FormData): Promise<PropuestaState> {

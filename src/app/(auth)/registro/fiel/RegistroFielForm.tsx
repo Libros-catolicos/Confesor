@@ -1,10 +1,12 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
+import { CasillaNewsletter, CasillaServicio } from '@/components/Consentimiento'
 import { registroFiel } from '../../actions'
 
 export function RegistroFielForm() {
   const [state, action, pending] = useActionState(registroFiel, undefined)
+  const [consentido, setConsentido] = useState(false)
 
   if (state?.ok) {
     return <p className="rounded-lg bg-accent-soft p-4 text-sm">{state.ok}</p>
@@ -46,17 +48,11 @@ export function RegistroFielForm() {
         />
       </div>
 
-      <label className="flex items-start gap-2 text-sm">
-        <input type="checkbox" name="consent" required className="mt-1 accent-accent" />
-        <span>
-          Acepto que Confesor guarde mi nombre, mi email y las fechas de mis citas y confesiones para
-          gestionarlas y avisarme. Estos datos revelan mis creencias religiosas; solo los veo yo y puedo
-          borrar la cuenta y todo su contenido en cualquier momento.
-        </span>
-      </label>
+      <CasillaServicio tipo="faithful" onChange={setConsentido} />
+      <CasillaNewsletter />
 
       {state?.error && <p className="text-sm text-red-700">{state.error}</p>}
-      <button type="submit" className="btn-primary" disabled={pending}>
+      <button type="submit" className="btn-primary" disabled={pending || !consentido}>
         {pending ? 'Creando cuenta…' : 'Crear cuenta'}
       </button>
     </form>

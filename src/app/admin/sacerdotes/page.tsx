@@ -107,18 +107,20 @@ export default async function AdminSacerdotesPage({ searchParams }: PageProps<'/
                     </form>
                   )}
                   {p.status === 'pendiente' && (
-                    <form action={cambiarEstadoSacerdote}>
+                    <form action={cambiarEstadoSacerdote} className="flex flex-wrap items-center gap-2">
                       <input type="hidden" name="id" value={p.id} />
                       <input type="hidden" name="status" value="rechazado" />
+                      <input name="motivo" placeholder="Motivo (se envía por correo)" className="input w-64" maxLength={300} />
                       <button type="submit" className="btn-secondary text-red-700">
                         Rechazar
                       </button>
                     </form>
                   )}
                   {p.status === 'verificado' && (
-                    <form action={cambiarEstadoSacerdote}>
+                    <form action={cambiarEstadoSacerdote} className="flex flex-wrap items-center gap-2">
                       <input type="hidden" name="id" value={p.id} />
                       <input type="hidden" name="status" value="suspendido" />
+                      <input name="motivo" placeholder="Motivo (se envía por correo)" className="input w-64" maxLength={300} />
                       <button type="submit" className="btn-secondary text-red-700">
                         Suspender
                       </button>

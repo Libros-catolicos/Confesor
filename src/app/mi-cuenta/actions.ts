@@ -3,6 +3,8 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { bajaNewsletterPorEmail, registrarConsentimiento } from '@/lib/consentimiento'
+import { CONSENT_TEXT } from '@/lib/legal'
 
 export type CuentaState = { error?: string; ok?: string } | undefined
 
@@ -56,7 +58,15 @@ export async function guardarAvisos(_prev: CuentaState, formData: FormData): Pro
 
 export async function borrarCuenta(formData: FormData) {
   if (String(formData.get('confirmar') ?? '') !== 'BORRAR') return
-  const { supabase } = await sesion()
+  const { supabase, user } = await sesion()
+  const bajaLista = formData.get('baja_lista') === 'on'
+
+  // Prueba de la retirada del consentimiento (se conserva bloqueada 3 años)
+  if (user.email) {
+    await registrarConsentimiento({ subjectType: 'faithful', subjectId: user.id, email: user.email, kind: 'service', text: CONSENT_TEXT.faithful, action: 'withdrawn' })
+    if (bajaLista) await bajaNewsletterPorEmail(user.email)
+  }
+
   const { error } = await supabase.rpc('delete_my_account')
   if (error) {
     console.error('[mi-cuenta] borrar:', error.message)

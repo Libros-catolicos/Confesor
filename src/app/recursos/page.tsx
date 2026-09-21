@@ -46,7 +46,10 @@ export default async function RecursosPage() {
             <BookOpen className="h-5 w-5 text-accent" aria-hidden />
             Lectura espiritual
           </h2>
-          <p className="mb-3 text-sm text-muted">Libros que ayudan a vivir mejor el sacramento y la vida interior.</p>
+          <p className="mb-3 text-sm text-muted">
+            Libros que ayudan a vivir mejor el sacramento y la vida interior.{' '}
+            <span className="rounded bg-border px-1.5 py-0.5 text-xs font-medium text-foreground">Contenido comercial</span>
+          </p>
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {libros.map((l) => (
               <li key={l.id} className={`card flex gap-4 ${l.featured ? 'border-accent/40 bg-accent-soft/40' : ''}`}>
@@ -67,12 +70,15 @@ export default async function RecursosPage() {
                     <a
                       href={l.url}
                       target="_blank"
-                      rel="noreferrer"
+                      rel={l.affiliate ? 'sponsored noopener' : 'noopener'}
                       className="mt-2 inline-flex items-center gap-1 text-sm text-accent underline"
                     >
                       Conseguirlo
                       <ExternalLink className="h-3.5 w-3.5" aria-hidden />
                     </a>
+                  )}
+                  {l.affiliate && (
+                    <span className="ml-2 text-xs text-muted">Enlace de afiliado</span>
                   )}
                 </div>
               </li>

@@ -28,6 +28,7 @@ export interface Book {
   description: string | null
   url: string | null
   cover_url: string | null
+  affiliate: boolean
   featured: boolean
   order_index: number
   published: boolean

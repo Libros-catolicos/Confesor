@@ -51,6 +51,7 @@ export function FichaForm({
           placeholder="Quién eres, cómo atiendes, qué pueden esperar los fieles…"
           className="input"
         />
+        <p className="mt-1 text-xs text-muted">Es pública. No incluyas teléfonos ni correos personales.</p>
       </div>
 
       <fieldset>
