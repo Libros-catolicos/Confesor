@@ -1,9 +1,14 @@
-// Envío de correos con Resend (API REST, sin dependencias).
-// Sin RESEND_API_KEY no se envía nada: se registra en el log y la app sigue.
+// Envío de correos de la app. Dos transportes, por orden de preferencia:
+//   1. Resend (API REST)      si existe RESEND_API_KEY
+//   2. SMTP (nodemailer)      si existen SMTP_HOST, SMTP_USER, SMTP_PASS
+// Sin ninguno de los dos no se envía nada: se registra en el log y la app sigue.
 //
 // Variables de entorno (Vercel → Settings → Environment Variables):
-//   RESEND_API_KEY   clave de Resend
-//   EMAIL_FROM       remitente, p. ej. "Confesor <citas@tudominio.com>" (dominio verificado en Resend)
+//   EMAIL_FROM       remitente, p. ej. "Confesor <info@confesor.es>"
+//   RESEND_API_KEY   clave de Resend (dominio verificado allí)
+//   SMTP_HOST, SMTP_PORT (465 por defecto), SMTP_USER, SMTP_PASS
+
+import nodemailer, { type Transporter } from 'nodemailer'
 
 export interface Correo {
   to: string
@@ -13,35 +18,57 @@ export interface Correo {
   replyTo?: string
 }
 
-export async function enviarEmail(correo: Correo): Promise<boolean> {
-  const key = process.env.RESEND_API_KEY
-  const from = process.env.EMAIL_FROM ?? 'Confesor <onboarding@resend.dev>'
+const FROM = () => process.env.EMAIL_FROM ?? 'Confesor <onboarding@resend.dev>'
 
-  if (!key) {
-    console.warn(`[email] RESEND_API_KEY no configurada. No se envía: "${correo.subject}" → ${correo.to}`)
+async function porResend(correo: Correo, key: string) {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: FROM(),
+      to: [correo.to],
+      subject: correo.subject,
+      html: correo.html,
+      text: correo.text,
+      reply_to: correo.replyTo,
+    }),
+  })
+  if (!res.ok) {
+    console.error('[email] Resend', res.status, await res.text())
     return false
   }
+  return true
+}
 
+let transporte: Transporter | null = null
+
+async function porSmtp(correo: Correo) {
+  const port = Number(process.env.SMTP_PORT ?? 465)
+  transporte ??= nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port,
+    secure: port === 465,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  })
+  await transporte.sendMail({
+    from: FROM(),
+    to: correo.to,
+    subject: correo.subject,
+    html: correo.html,
+    text: correo.text,
+    replyTo: correo.replyTo,
+  })
+  return true
+}
+
+export async function enviarEmail(correo: Correo): Promise<boolean> {
   try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from,
-        to: [correo.to],
-        subject: correo.subject,
-        html: correo.html,
-        text: correo.text,
-        reply_to: correo.replyTo,
-      }),
-    })
-    if (!res.ok) {
-      console.error('[email] Resend', res.status, await res.text())
-      return false
-    }
-    return true
+    if (process.env.RESEND_API_KEY) return await porResend(correo, process.env.RESEND_API_KEY)
+    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) return await porSmtp(correo)
+    console.warn(`[email] Sin proveedor configurado. No se envía: "${correo.subject}" → ${correo.to}`)
+    return false
   } catch (e) {
-    console.error('[email] error de red', e)
+    console.error('[email] error al enviar', e)
     return false
   }
 }
