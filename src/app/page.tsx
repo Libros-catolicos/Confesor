@@ -40,15 +40,27 @@ export default function HomePage() {
         ))}
       </section>
 
-      <section className="rounded-xl bg-accent-soft p-6 text-center">
-        <h2 className="font-semibold">¿Eres sacerdote?</h2>
-        <p className="mt-1 text-sm text-muted">
-          Publica tu parroquia, tus horarios de confesión y los idiomas en los que
-          atiendes. Los fieles podrán reservar contigo.
-        </p>
-        <Link href="/registro/sacerdote" className="btn-primary mt-4">
-          Crear mi ficha
-        </Link>
+      <section className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-xl bg-accent-soft p-6 text-center">
+          <h2 className="font-semibold">¿Quieres llevar tu registro?</h2>
+          <p className="mt-1 text-sm text-muted">
+            Con una cuenta gratuita puedes ver tus citas, anotar cuándo te confesaste por última
+            vez y recibir un aviso cuando lleves tiempo sin hacerlo. Solo guardamos fechas.
+          </p>
+          <Link href="/registro/fiel" className="btn-primary mt-4">
+            Crear mi cuenta
+          </Link>
+        </div>
+        <div className="rounded-xl bg-accent-soft p-6 text-center">
+          <h2 className="font-semibold">¿Eres sacerdote?</h2>
+          <p className="mt-1 text-sm text-muted">
+            Publica tu parroquia, tus horarios de confesión y los idiomas en los que atiendes. Los
+            fieles podrán reservar contigo.
+          </p>
+          <Link href="/registro/sacerdote" className="btn-primary mt-4">
+            Crear mi ficha
+          </Link>
+        </div>
       </section>
     </div>
   )
