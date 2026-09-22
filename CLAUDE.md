@@ -45,3 +45,8 @@
   mientras exista la cuenta; el trigger `priests_delete_storage` borra la fila de storage al borrar el sacerdote
   (para no dejar el blob huérfano, al implementar "borrar cuenta de sacerdote" llamar antes a
   `storage.from('verificacion').remove`). `serverActions.bodySizeLimit` = 6mb en next.config.ts.
+- PWA: `src/app/manifest.ts`, iconos estáticos en `public/` (generados con ImageResponse; para rehacerlos,
+  una ruta temporal con `src/lib/og`-style y curl a /public), `public/sw.js` registrado por
+  `src/components/ServiceWorker.tsx`, aviso de instalación en `src/components/InstalarApp.tsx` y página
+  `/sin-conexion`. **El service worker NO cachea páginas** (datos personales): navegación siempre a red,
+  solo estáticos en caché. Cabeceras de seguridad y de `/sw.js` en next.config.ts. Falta: notificaciones push.

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { SearchForm } from '@/components/SearchForm'
+import { InstalarApp } from '@/components/InstalarApp'
 
 export default function HomePage() {
   return (
@@ -16,6 +17,10 @@ export default function HomePage() {
 
       <section className="card mx-auto w-full max-w-2xl">
         <SearchForm />
+      </section>
+
+      <section className="mx-auto w-full max-w-2xl">
+        <InstalarApp />
       </section>
 
       <section className="grid gap-4 sm:grid-cols-3">

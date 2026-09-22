@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
+import { ServiceWorker } from '@/components/ServiceWorker'
 import { siteUrl } from '@/lib/site'
 
 const geistSans = Geist({
@@ -34,6 +35,8 @@ export const metadata: Metadata = {
       'Encuentra sacerdotes cerca de ti para confesarte o hablar, y reserva cita sin registrarte.',
   },
   twitter: { card: 'summary_large_image' },
+  // App instalable (PWA): el manifiesto lo genera src/app/manifest.ts
+  appleWebApp: { capable: true, title: 'Confesor', statusBarStyle: 'default' },
 }
 
 export const viewport: Viewport = {
@@ -54,6 +57,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
           {children}
         </main>
         <Footer />
+        <ServiceWorker />
       </body>
     </html>
   )
