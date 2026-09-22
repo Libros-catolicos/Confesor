@@ -35,3 +35,8 @@
   `notificaciones.ts` con `createAdminClient()` (necesita `SUPABASE_SECRET_KEY`; en local no hay, solo log).
   Sin chat: solo confirmar/rechazar/cancelar proponiendo otra hora, y el botón "Ya estoy aquí" del fiel
   (`mark_arrived`, ventana 1 h antes → fin de la cita) que avisa al sacerdote por email.
+- Retención: el cron llama a `purge_appointments()` (0015): a los 7 días del fin de la cita borra las reservas
+  sin cuenta y anonimiza (nombre 'Fiel', sin email, tokens rotados, `purged_at`) las ligadas a cuenta de fiel.
+  RLS: el sacerdote solo ve citas hasta 7 días después. Enlaces caducados → `cita/[token]/not-found.tsx`.
+- Textos legales en versión 2 (modelo solo email / sacerdote ve solo el nombre). Página `/para-sacerdotes`
+  es la de aterrizaje para anunciar; Open Graph en `src/lib/og.tsx` + `opengraph-image.tsx`.

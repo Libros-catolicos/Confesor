@@ -1,7 +1,7 @@
 // Versión de los textos legales y textos literales de las casillas de consentimiento.
 // Los textos son los del documento legal (B4) y NO se reescriben. Si cambian, sube LEGAL_VERSION.
 
-export const LEGAL_VERSION = '1'
+export const LEGAL_VERSION = '2'
 export const LEGAL_UPDATED = '1 de octubre de 2026'
 
 export const CONSENT_TEXT = {

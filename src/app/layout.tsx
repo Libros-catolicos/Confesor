@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
+import { siteUrl } from '@/lib/site'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -22,6 +23,17 @@ export const metadata: Metadata = {
   description:
     'Encuentra sacerdotes cerca de ti para confesarte o hablar, y reserva cita sin registrarte.',
   applicationName: 'Confesor',
+  // Tarjeta al compartir en WhatsApp, X, Telegram… (imagen en opengraph-image.tsx)
+  metadataBase: new URL(siteUrl()),
+  openGraph: {
+    type: 'website',
+    siteName: 'Confesor',
+    locale: 'es_ES',
+    title: 'Confesor',
+    description:
+      'Encuentra sacerdotes cerca de ti para confesarte o hablar, y reserva cita sin registrarte.',
+  },
+  twitter: { card: 'summary_large_image' },
 }
 
 export const viewport: Viewport = {

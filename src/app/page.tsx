@@ -10,7 +10,7 @@ export default function HomePage() {
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-muted">
           Busca por ubicación, idioma y horario. Reserva una cita para confesarte o
-          hablar, sin registrarte y sin dar más datos que un nombre y un contacto.
+          hablar, sin registrarte y sin dar más datos que un nombre y un correo.
         </p>
       </section>
 
@@ -30,7 +30,7 @@ export default function HomePage() {
           },
           {
             t: '3. Reserva',
-            d: 'Solo pedimos un nombre y un email o teléfono para confirmarte. Puedes cancelar desde el enlace que recibes.',
+            d: 'Solo pedimos un nombre y un correo para confirmarte. El sacerdote solo ve tu nombre. Puedes cancelar desde el enlace que recibes.',
           },
         ].map((p) => (
           <div key={p.t} className="card">
@@ -57,9 +57,14 @@ export default function HomePage() {
             Publica tu parroquia, tus horarios de confesión y los idiomas en los que atiendes. Los
             fieles podrán reservar contigo.
           </p>
-          <Link href="/registro/sacerdote" className="btn-primary mt-4">
-            Crear mi ficha
-          </Link>
+          <div className="mt-4 flex flex-wrap justify-center gap-3">
+            <Link href="/registro/sacerdote" className="btn-primary">
+              Crear mi ficha
+            </Link>
+            <Link href="/para-sacerdotes" className="btn-secondary">
+              Cómo funciona
+            </Link>
+          </div>
         </div>
       </section>
     </div>

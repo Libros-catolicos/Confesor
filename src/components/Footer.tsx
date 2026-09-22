@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 const ENLACES = [
+  { href: '/para-sacerdotes', label: 'Para sacerdotes' },
   { href: '/aviso-legal', label: 'Aviso legal' },
   { href: '/privacidad', label: 'Privacidad' },
   { href: '/condiciones', label: 'Condiciones de uso' },

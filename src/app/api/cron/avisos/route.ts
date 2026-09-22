@@ -35,7 +35,14 @@ export async function GET(req: NextRequest) {
     auth: { persistSession: false, autoRefreshToken: false },
   })
   const base = siteUrl()
-  const resultado = { recordatorios: 0, avisos: 0 }
+  const resultado = { borradas: 0, anonimizadas: 0, recordatorios: 0, avisos: 0 }
+
+  // ---------- 0. Borrado de reservas 7 días después de la cita (política §2) ----------
+  const { data: purga, error: errPurga } = await db.rpc('purge_appointments')
+  if (errPurga) console.error('[cron] purge_appointments:', errPurga.message)
+  const p = (Array.isArray(purga) ? purga[0] : purga) as { deleted: number; anonymized: number } | undefined
+  resultado.borradas = p?.deleted ?? 0
+  resultado.anonimizadas = p?.anonymized ?? 0
 
   // ---------- 1. Recordatorio de cita: citas que empiezan entre 20 y 44 horas después ----------
   const desde = new Date(Date.now() + 20 * 3600e3).toISOString()
