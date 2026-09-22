@@ -40,3 +40,8 @@
   RLS: el sacerdote solo ve citas hasta 7 días después. Enlaces caducados → `cita/[token]/not-found.tsx`.
 - Textos legales en versión 2 (modelo solo email / sacerdote ve solo el nombre). Página `/para-sacerdotes`
   es la de aterrizaje para anunciar; Open Graph en `src/lib/og.tsx` + `opengraph-image.tsx`.
+- Documento de verificación (celebret), opcional: bucket privado `verificacion` (carpeta = uuid del sacerdote),
+  ruta en `priest_private.verification_doc_path`; el admin lo abre con enlace firmado de 10 min. Se conserva
+  mientras exista la cuenta; el trigger `priests_delete_storage` borra la fila de storage al borrar el sacerdote
+  (para no dejar el blob huérfano, al implementar "borrar cuenta de sacerdote" llamar antes a
+  `storage.from('verificacion').remove`). `serverActions.bodySizeLimit` = 6mb en next.config.ts.

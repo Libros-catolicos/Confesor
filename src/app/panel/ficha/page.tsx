@@ -4,6 +4,7 @@ import type { Priest, PriestPrivate } from '@/lib/types'
 import { siteUrl } from '@/lib/site'
 import { FichaForm } from './FichaForm'
 import { CopiarEnlace } from './CopiarEnlace'
+import { DocumentoVerificacion } from './DocumentoVerificacion'
 
 export const metadata = { title: 'Mi ficha' }
 
@@ -19,6 +20,11 @@ export default async function FichaPage() {
   ])
   if (!priest || !priv) return null
 
+  // Enlace firmado de 10 minutos para que el sacerdote revise su propio documento
+  const { data: firmado } = priv.verification_doc_path
+    ? await supabase.storage.from('verificacion').createSignedUrl(priv.verification_doc_path, 600)
+    : { data: null }
+
   const base = siteUrl()
   const urlPublica = `${base}/s/${priest.slug}`
   const urlCalendario = `${base}/api/calendario/${priv.calendar_token}.ics`
@@ -29,6 +35,9 @@ export default async function FichaPage() {
         <h2 className="font-semibold">Datos públicos y ajustes</h2>
         <FichaForm priest={priest} verificationNotes={priv.verification_notes} />
       </section>
+      <div className="md:col-span-2 md:order-last">
+        <DocumentoVerificacion subidoEl={priv.verification_doc_uploaded_at} urlVer={firmado?.signedUrl ?? null} />
+      </div>
 
       <div className="flex flex-col gap-4">
         <section className="card">

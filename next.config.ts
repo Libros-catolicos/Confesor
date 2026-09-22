@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    // Subida del documento de verificación (hasta 5 MB) por server action
+    serverActions: { bodySizeLimit: "6mb" },
+  },
 };
 
 export default nextConfig;

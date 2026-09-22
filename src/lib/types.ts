@@ -127,6 +127,8 @@ export interface PriestPrivate {
   priest_id: string
   calendar_token: string
   verification_notes: string | null
+  verification_doc_path: string | null
+  verification_doc_uploaded_at: string | null
   updated_at: string
 }
 

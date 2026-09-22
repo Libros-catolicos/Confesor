@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin'
+import { fmtFecha } from '@/lib/fechas'
 import { nombreIdioma } from '@/lib/idiomas'
 import { PRIEST_STATUS_LABEL, type Priest, type PriestStatus } from '@/lib/types'
 import { cambiarEstadoSacerdote } from './actions'
@@ -8,7 +9,8 @@ export const metadata = { title: 'Sacerdotes' }
 
 type Fila = Priest & {
   profiles: { email: string; full_name: string; created_at: string } | null
-  priest_private: { verification_notes: string | null } | null
+  priest_private: { verification_notes: string | null; verification_doc_path: string | null; verification_doc_uploaded_at: string | null } | null
+  doc_url?: string | null
   priest_places: { places: { name: string; city: string | null } | null }[]
   availability_rules: { count: number }[]
 }
@@ -36,13 +38,21 @@ export default async function AdminSacerdotesPage({ searchParams }: PageProps<'/
   let q = supabase
     .from('priests')
     .select(
-      '*, profiles(email, full_name, created_at), priest_private(verification_notes), priest_places(places(name, city)), availability_rules(count)'
+      '*, profiles(email, full_name, created_at), priest_private(verification_notes, verification_doc_path, verification_doc_uploaded_at), priest_places(places(name, city)), availability_rules(count)'
     )
     .order('created_at', { ascending: false })
   if (estado !== 'todos') q = q.eq('status', estado)
   const { data, error } = await q.returns<Fila[]>()
   if (error) console.error('[admin] sacerdotes:', error.message)
-  const filas = data ?? []
+  // Enlaces firmados (10 min) a los documentos de verificación: el bucket es privado
+  const filas: Fila[] = await Promise.all(
+    (data ?? []).map(async (p) => {
+      const path = p.priest_private?.verification_doc_path
+      if (!path) return p
+      const { data: firmado } = await supabase.storage.from('verificacion').createSignedUrl(path, 600)
+      return { ...p, doc_url: firmado?.signedUrl ?? null }
+    })
+  )
 
   return (
     <div className="flex flex-col gap-4">
@@ -89,6 +99,20 @@ export default async function AdminSacerdotesPage({ searchParams }: PageProps<'/
                       <p className="whitespace-pre-line">
                         {p.priest_private?.verification_notes || <span className="text-muted">No ha indicado nada.</span>}
                       </p>
+                      {p.priest_private?.verification_doc_path ? (
+                        <p className="mt-1 text-xs">
+                          Documento subido el {fmtFecha(p.priest_private.verification_doc_uploaded_at!, 'Europe/Madrid')} ·{' '}
+                          {p.doc_url ? (
+                            <a href={p.doc_url} target="_blank" rel="noopener noreferrer" className="text-accent underline">
+                              Ver celebret / documento
+                            </a>
+                          ) : (
+                            <span className="text-muted">no se ha podido generar el enlace</span>
+                          )}
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-xs text-muted">Sin documento de verificación.</p>
+                      )}
                     </div>
                   </div>
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${ESTILO[p.status]}`}>
