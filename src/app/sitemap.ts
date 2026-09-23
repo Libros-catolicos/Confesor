@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/publico'
 import { siteUrl } from '@/lib/site'
 
 // Se regenera cada hora: los sacerdotes nuevos entran solos en el mapa del sitio.
@@ -21,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   try {
-    const supabase = await createClient()
+    const supabase = createPublicClient()
     const [{ data: sacerdotes }, { data: articulos }] = await Promise.all([
       supabase
         .from('priests')
