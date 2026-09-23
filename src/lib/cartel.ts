@@ -54,7 +54,8 @@ export async function cartelPdf({ nombre, url, lugar }: Datos) {
   page.drawRectangle({ x: 0, y: A4.alto - 96, width: A4.ancho, height: 96, color: MORADO })
   const cx = A4.ancho / 2
   page.drawRectangle({ x: cx - 46, y: A4.alto - 72, width: 5, height: 46, color: rgb(1, 1, 1) })
-  page.drawRectangle({ x: cx - 58, y: A4.alto - 58, width: 29, height: 5, color: rgb(1, 1, 1) })
+  // El travesaño va en el tercio superior del palo (en PDF la y crece hacia arriba)
+  page.drawRectangle({ x: cx - 58, y: A4.alto - 44, width: 29, height: 5, color: rgb(1, 1, 1) })
   page.drawText('Confesor', { x: cx - 18, y: A4.alto - 62, size: 26, font: negrita, color: rgb(1, 1, 1) })
 
   // Titular
