@@ -85,7 +85,7 @@ export default async function BuscarPage({ searchParams }: PageProps<'/buscar'>)
             {resultados.map((r) => (
               <li key={`${r.priest_id}-${r.place_id}`}>
                 <Link
-                  href={`/s/${r.slug}?lugar=${r.place_id}`}
+                  href={`/${r.slug}?lugar=${r.place_id}`}
                   className="card block transition-shadow hover:shadow-md"
                 >
                   <div className="flex items-start justify-between gap-3">

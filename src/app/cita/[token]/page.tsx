@@ -107,7 +107,7 @@ export default async function CitaPage({ params, searchParams }: PageProps<'/cit
           <div>
             <dt className="text-muted">Sacerdote</dt>
             <dd>
-              <Link href={`/s/${cita.priest_slug}`} className="text-accent underline">
+              <Link href={`/${cita.priest_slug}`} className="text-accent underline">
                 {cita.priest_name}
               </Link>
             </dd>
@@ -186,7 +186,7 @@ export default async function CitaPage({ params, searchParams }: PageProps<'/cit
             ) : (
               'Esta cita está cancelada.'
             )}{' '}
-            <Link href={`/s/${cita.priest_slug}`} className="text-accent underline">
+            <Link href={`/${cita.priest_slug}`} className="text-accent underline">
               Reservar otra
             </Link>
           </p>

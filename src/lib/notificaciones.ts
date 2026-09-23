@@ -121,7 +121,7 @@ export async function notificarRespuestaSacerdote(token: string) {
   if (!d?.guest_email) return
   const urlFiel = `${siteUrl()}/cita/${d.manage_token}`
   const sacerdote = nombreSacerdote(d)
-  const urlFicha = `${siteUrl()}/s/${d.priests?.slug ?? ''}`
+  const urlFicha = `${siteUrl()}/${d.priests?.slug ?? ''}`
   let titulo: string, cuerpo: string, texto: string
 
   if (d.status === 'confirmada') {

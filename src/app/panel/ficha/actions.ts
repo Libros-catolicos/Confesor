@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { IDIOMAS } from '@/lib/idiomas'
 import { MIN_NOTICE_OPTIONS } from '@/lib/types'
+import { aSlug, motivoSlugInvalido } from '@/lib/slug'
 
 export type FichaState = { error?: string; ok?: string } | undefined
 
@@ -12,6 +13,7 @@ export async function guardarFicha(_prev: FichaState, formData: FormData): Promi
   const diocese = String(formData.get('diocese') ?? '').trim()
   const bio = String(formData.get('bio') ?? '').trim()
   const verificationNotes = String(formData.get('verification_notes') ?? '').trim()
+  const slug = aSlug(String(formData.get('slug') ?? ''))
   const languages = formData
     .getAll('languages')
     .map(String)
@@ -23,6 +25,8 @@ export async function guardarFicha(_prev: FichaState, formData: FormData): Promi
   if (languages.length === 0) return { error: 'Selecciona al menos un idioma.' }
   if (!MIN_NOTICE_OPTIONS.some((o) => o.value === minNotice)) return { error: 'Antelación no válida.' }
   if (bio.length > 600) return { error: 'La presentación no puede superar los 600 caracteres.' }
+  const malSlug = motivoSlugInvalido(slug)
+  if (malSlug) return { error: malSlug }
 
   const supabase = await createClient()
   const {
@@ -33,6 +37,7 @@ export async function guardarFicha(_prev: FichaState, formData: FormData): Promi
   const { error } = await supabase
     .from('priests')
     .update({
+      slug,
       display_name: displayName,
       diocese: diocese || null,
       bio: bio || null,
@@ -43,7 +48,9 @@ export async function guardarFicha(_prev: FichaState, formData: FormData): Promi
     .eq('id', user.id)
   if (error) {
     console.error('[ficha] update:', error.message)
-    return { error: 'No se han podido guardar los cambios.' }
+    return {
+      error: error.code === '23505' ? 'Ese enlace ya lo usa otro sacerdote. Prueba con otro.' : 'No se han podido guardar los cambios.',
+    }
   }
 
   const { error: e2 } = await supabase
@@ -53,6 +60,7 @@ export async function guardarFicha(_prev: FichaState, formData: FormData): Promi
   if (e2) console.error('[ficha] private:', e2.message)
 
   revalidatePath('/panel')
+  revalidatePath(`/${slug}`)
   return { ok: 'Cambios guardados.' }
 }
 

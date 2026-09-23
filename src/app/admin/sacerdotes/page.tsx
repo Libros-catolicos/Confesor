@@ -160,7 +160,7 @@ export default async function AdminSacerdotesPage({ searchParams }: PageProps<'/
                     </form>
                   )}
                   {p.status === 'verificado' && (
-                    <Link href={`/s/${p.slug}`} className="btn-secondary" target="_blank">
+                    <Link href={`/${p.slug}`} className="btn-secondary" target="_blank">
                       Ver ficha pública
                     </Link>
                   )}

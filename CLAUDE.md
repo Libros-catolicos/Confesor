@@ -50,3 +50,9 @@
   `src/components/ServiceWorker.tsx`, aviso de instalación en `src/components/InstalarApp.tsx` y página
   `/sin-conexion`. **El service worker NO cachea páginas** (datos personales): navegación siempre a red,
   solo estáticos en caché. Cabeceras de seguridad y de `/sw.js` en next.config.ts. Falta: notificaciones push.
+- Enlace público del sacerdote: cuelga de la raíz (`confesor.es/juan-perez`, `src/app/[slug]`), con redirección
+  308 desde `/s/:slug` en next.config.ts. **Al crear una ruta nueva de primer nivel hay que añadirla a
+  `RUTAS_RESERVADAS` en `src/lib/slug.ts` y a `slug_disponible()` en SQL (0017)**, si no un sacerdote podría
+  ocuparla. El slug se genera limpio (`slug_para_nombre`) y el sacerdote puede cambiarlo en su ficha.
+- Cartel imprimible: `/api/cartel` (sesión de sacerdote) genera un A4 en PDF con QR — `src/lib/cartel.ts`
+  (pdf-lib + qrcode). Solo datos públicos. Las tildes funcionan con Helvetica (WinAnsi).

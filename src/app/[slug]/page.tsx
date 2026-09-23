@@ -11,10 +11,12 @@ import {
   type Place,
   type Priest,
 } from '@/lib/types'
+import { RUTAS_RESERVADAS } from '@/lib/slug'
 import { SlotPicker } from './SlotPicker'
 
-export async function generateMetadata({ params }: PageProps<'/s/[slug]'>) {
+export async function generateMetadata({ params }: PageProps<'/[slug]'>) {
   const { slug } = await params
+  if (RUTAS_RESERVADAS.has(slug)) return {}
   const supabase = await createClient()
   const { data } = await supabase.from('priests').select('display_name').eq('slug', slug).maybeSingle()
   return { title: data?.display_name ?? 'Sacerdote' }
@@ -22,8 +24,10 @@ export async function generateMetadata({ params }: PageProps<'/s/[slug]'>) {
 
 type PlaceLite = Pick<Place, 'id' | 'name' | 'address' | 'city' | 'timezone'>
 
-export default async function PriestPage({ params, searchParams }: PageProps<'/s/[slug]'>) {
+export default async function PriestPage({ params, searchParams }: PageProps<'/[slug]'>) {
   const [{ slug }, sp] = await Promise.all([params, searchParams])
+  // La ficha cuelga de la raíz: nunca debe responder por una ruta de la aplicación
+  if (RUTAS_RESERVADAS.has(slug)) notFound()
   const lugarInicial = typeof sp.lugar === 'string' ? sp.lugar : undefined
 
   const supabase = await createClient()

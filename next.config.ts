@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
     // Subida del documento de verificación (hasta 5 MB) por server action
     serverActions: { bodySizeLimit: "6mb" },
   },
+  async redirects() {
+    // Enlaces antiguos de las fichas (/s/juan-perez → /juan-perez)
+    return [{ source: "/s/:slug", destination: "/:slug", permanent: true }];
+  },
   async headers() {
     return [
       { source: "/(.*)", headers: SEGURIDAD },

@@ -8,9 +8,11 @@ import { guardarFicha } from './actions'
 export function FichaForm({
   priest,
   verificationNotes,
+  dominio,
 }: {
   priest: Priest
   verificationNotes: string | null
+  dominio: string
 }) {
   const [state, action, pending] = useActionState(guardarFicha, undefined)
 
@@ -36,6 +38,28 @@ export function FichaForm({
           </label>
           <input id="diocese" name="diocese" defaultValue={priest.diocese ?? ''} placeholder="Madrid" className="input" />
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="slug" className="label">
+          Tu enlace público
+        </label>
+        <div className="flex items-center rounded-lg border border-border bg-card focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20">
+          <span className="shrink-0 pl-3 text-sm text-muted">{dominio}/</span>
+          <input
+            id="slug"
+            name="slug"
+            required
+            defaultValue={priest.slug}
+            pattern="[a-z0-9]+(-[a-z0-9]+)*"
+            maxLength={40}
+            className="w-full bg-transparent px-1 py-2 text-sm focus:outline-none"
+          />
+        </div>
+        <p className="mt-1 text-xs text-muted">
+          Minúsculas, números y guiones. Si lo cambias, los carteles y códigos QR que ya hayas
+          impreso dejarán de funcionar.
+        </p>
       </div>
 
       <div>
