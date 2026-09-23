@@ -82,7 +82,7 @@ export async function cartelPdf({ nombre, url, lugar }: Datos) {
     color: { dark: '#1f1a17', light: '#ffffff' },
   })
   const qr = await pdf.embedPng(new Uint8Array(qrPng))
-  const lado = 280
+  const lado = 260
   const qrY = y - lado - 40
   page.drawRectangle({
     x: cx - lado / 2 - 14,
@@ -97,21 +97,22 @@ export async function cartelPdf({ nombre, url, lugar }: Datos) {
 
   // Enlace escrito
   const visible = url.replace(/^https?:\/\//, '')
-  let yEnlace = qrY - 56
+  let yEnlace = qrY - 52
   centrado(page, visible, yEnlace, negrita, 20, MORADO)
 
   if (lugar) {
-    yEnlace -= 28
+    yEnlace -= 26
     for (const fila of lineas(lugar, normal, 13, A4.ancho - 140)) {
       centrado(page, fila, yEnlace, normal, 13, SUAVE)
       yEnlace -= 18
     }
   }
 
-  // Pie
-  page.drawRectangle({ x: 120, y: 118, width: A4.ancho - 240, height: 1, color: rgb(0.906, 0.882, 0.855) })
-  centrado(page, 'Sin registrarte y en un minuto: eliges el día y la hora que te vengan bien.', 92, normal, 12, SUAVE)
-  centrado(page, 'confesor.es', 68, normal, 11, SUAVE)
+  // Pie: la invitación a la web general, no solo a la ficha del sacerdote
+  centrado(page, 'Sin registrarte y en un minuto: eliges el día y la hora que te vengan bien.', 128, normal, 12, SUAVE)
+  page.drawRectangle({ x: 90, y: 104, width: A4.ancho - 180, height: 1, color: rgb(0.906, 0.882, 0.855) })
+  centrado(page, 'Más sacerdotes, parroquias y horarios de confesión en', 74, normal, 13, SUAVE)
+  centrado(page, 'www.confesor.es', 46, negrita, 22, MORADO)
 
   return pdf.save()
 }
