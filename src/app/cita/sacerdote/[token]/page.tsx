@@ -7,7 +7,7 @@ import { nombreIdioma } from '@/lib/idiomas'
 import { APPOINTMENT_STATUS_LABEL, SLOT_TYPE_LABEL, type AppointmentStatus, type SlotType } from '@/lib/types'
 import { Respuesta } from './Respuesta'
 
-export const metadata = { title: 'Solicitud de cita' }
+export const metadata = { title: 'Solicitud de cita', robots: { index: false, follow: false } }
 
 interface Datos {
   id: string

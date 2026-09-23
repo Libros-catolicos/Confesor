@@ -2,6 +2,9 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin'
 import { logout } from '@/app/(auth)/actions'
 
+// Zona privada: fuera de los buscadores (además del robots.txt)
+export const metadata = { robots: { index: false, follow: false } }
+
 const NAV = [
   { href: '/admin', label: 'Resumen' },
   { href: '/admin/sacerdotes', label: 'Sacerdotes' },

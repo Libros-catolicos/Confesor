@@ -8,7 +8,7 @@ import { homeForRole, SLOT_TYPE_LABEL, type Appointment, type Place, type Profil
 import { AvisosForm, BorrarCuenta, ConfesionForm } from './Forms'
 import { borrarConfesion } from './actions'
 
-export const metadata = { title: 'Mi cuenta' }
+export const metadata = { title: 'Mi cuenta', robots: { index: false, follow: false } }
 
 type CitaConLugar = Pick<Appointment, 'id' | 'starts_at' | 'type' | 'status' | 'manage_token'> & {
   places: Pick<Place, 'name' | 'timezone'> | null

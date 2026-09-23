@@ -13,7 +13,7 @@ import {
 import { avisarLlegada, cancelarCita, cambiarRecordatorio } from './actions'
 import { Propuesta } from './Propuesta'
 
-export const metadata = { title: 'Tu cita' }
+export const metadata = { title: 'Tu cita', robots: { index: false, follow: false } }
 
 export interface CitaToken {
   id: string

@@ -4,6 +4,9 @@ import { createClient } from '@/lib/supabase/server'
 import { logout } from '@/app/(auth)/actions'
 import { PRIEST_STATUS_LABEL, type Priest } from '@/lib/types'
 
+// Zona privada: fuera de los buscadores (además del robots.txt)
+export const metadata = { robots: { index: false, follow: false } }
+
 const NAV = [
   { href: '/panel', label: 'Resumen' },
   { href: '/panel/citas', label: 'Citas' },
