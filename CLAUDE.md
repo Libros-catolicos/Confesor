@@ -56,3 +56,5 @@
   ocuparla. El slug se genera limpio (`slug_para_nombre`) y el sacerdote puede cambiarlo en su ficha.
 - Cartel imprimible: `/api/cartel` (sesión de sacerdote) genera un A4 en PDF con QR — `src/lib/cartel.ts`
   (pdf-lib + qrcode). Solo datos públicos. Las tildes funcionan con Helvetica (WinAnsi).
+- Aviso al administrador: `notificarAltaSacerdote` avisa a `emailAdmin()` (`ADMIN_EMAIL` o
+  editor@libroscatolicos.es) en cada alta de sacerdote, para que la verifique.

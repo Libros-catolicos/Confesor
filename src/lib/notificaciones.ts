@@ -11,7 +11,7 @@ import { bloqueComercial, enviarEmail, plantilla } from '@/lib/email'
 import { estaSuscrito, tokenDeBaja } from '@/lib/consentimiento'
 import { fmtFechaHora, fmtHora } from '@/lib/fechas'
 import { nombreIdioma } from '@/lib/idiomas'
-import { siteUrl } from '@/lib/site'
+import { emailAdmin, siteUrl } from '@/lib/site'
 import { SLOT_TYPE_LABEL, type AppointmentStatus, type SlotType } from '@/lib/types'
 
 interface Datos {
@@ -177,6 +177,25 @@ export async function notificarRespuestaFiel(manageToken: string) {
       text: `${d.guest_name} ha aceptado la hora que propusiste.\n\n${resumenTexto(d)}\n\n${urlSacerdote}`,
     })
   }
+}
+
+/** Alta de un sacerdote → aviso al administrador, que es quien verifica */
+export async function notificarAltaSacerdote(nombre: string, email: string) {
+  const url = `${siteUrl()}/admin/sacerdotes`
+  await enviarEmail({
+    to: emailAdmin(),
+    subject: `Nuevo sacerdote registrado: ${nombre}`,
+    html: plantilla(
+      'Nuevo sacerdote registrado',
+      `<p><strong>${nombre}</strong> ha creado una ficha en Confesor.</p>
+       <p>Correo de acceso: ${email}</p>
+       <p>Su ficha no será pública hasta que la verifiques. Revisa los datos de verificación y, si los ha subido, su celebret.</p>`,
+      { texto: 'Revisar en administración', url }
+    ),
+    text: `${nombre} (${email}) ha creado una ficha en Confesor.
+
+Su ficha no será pública hasta que la verifiques: ${url}`,
+  })
 }
 
 /** El fiel ha pulsado "Ya estoy aquí" → aviso inmediato al sacerdote */

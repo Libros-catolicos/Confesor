@@ -1,12 +1,14 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { IDIOMAS } from '@/lib/idiomas'
 import { siteUrl } from '@/lib/site'
 import { homeForRole, type UserRole } from '@/lib/types'
 import { CONSENT_TEXT } from '@/lib/legal'
 import { registrarConsentimiento, suscribirNewsletter } from '@/lib/consentimiento'
+import { notificarAltaSacerdote } from '@/lib/notificaciones'
 
 export type AuthState = { error?: string; ok?: string } | undefined
 
@@ -67,6 +69,8 @@ export async function registro(_prev: AuthState, formData: FormData): Promise<Au
     await suscribirNewsletter(email, fullName, 'priest')
     await registrarConsentimiento({ subjectType: 'newsletter', email, kind: 'newsletter', text: CONSENT_TEXT.newsletter })
   }
+
+  after(() => notificarAltaSacerdote(fullName, email))
 
   // Si la confirmación por email está desactivada llega sesión directa
   if (data.session) redirect('/panel')

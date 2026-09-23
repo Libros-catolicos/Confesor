@@ -1,3 +1,8 @@
+/** Buzón al que avisamos de altas y de cualquier cosa que requiera intervención */
+export function emailAdmin() {
+  return process.env.ADMIN_EMAIL ?? 'editor@libroscatolicos.es'
+}
+
 /** URL pública del sitio, sin barra final. En Vercel se deduce sola. */
 export function siteUrl() {
   const explicit = process.env.NEXT_PUBLIC_SITE_URL
