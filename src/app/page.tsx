@@ -10,8 +10,8 @@ export default function HomePage() {
           Encuentra un sacerdote cerca de ti
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-muted">
-          Busca por ubicación, idioma y horario. Reserva una cita para confesarte o
-          hablar, sin registrarte y sin dar más datos que un nombre y un correo.
+          Busca por ubicación, idioma y horario. Reserva una cita para confesarte o hablar: no
+          es necesario registrarse, basta un nombre y un correo.
         </p>
       </section>
 
@@ -35,7 +35,7 @@ export default function HomePage() {
           },
           {
             t: '3. Reserva',
-            d: 'Solo pedimos un nombre y un correo para confirmarte. El sacerdote solo ve tu nombre. Puedes cancelar desde el enlace que recibes.',
+            d: 'No es necesario registrarse: solo pedimos un nombre y un correo para confirmarte. El sacerdote solo ve tu nombre. Puedes cancelar desde el enlace que recibes.',
           },
         ].map((p) => (
           <div key={p.t} className="card">
@@ -60,7 +60,8 @@ export default function HomePage() {
           <h2 className="font-semibold">¿Eres sacerdote?</h2>
           <p className="mt-1 text-sm text-muted">
             Publica tu parroquia, tus horarios de confesión y los idiomas en los que atiendes. Los
-            fieles podrán reservar contigo.
+            fieles podrán reservar contigo. Podrás descargar un cartel con tu código QR para
+            imprimirlo y colgarlo en la puerta de la iglesia o del confesionario.
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-3">
             <Link href="/registro/sacerdote" className="btn-primary">

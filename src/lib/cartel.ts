@@ -110,7 +110,7 @@ export async function cartelPdf({ nombre, url, lugar }: Datos) {
   }
 
   // Pie: la invitación a la web general, no solo a la ficha del sacerdote
-  centrado(page, 'Sin registrarte y en un minuto: eliges el día y la hora que te vengan bien.', 128, normal, 12, SUAVE)
+  centrado(page, 'No es necesario registrarse: en un minuto eliges el día y la hora que te vengan bien.', 128, normal, 12, SUAVE)
   page.drawRectangle({ x: 90, y: 104, width: A4.ancho - 180, height: 1, color: rgb(0.906, 0.882, 0.855) })
   centrado(page, 'Más sacerdotes, parroquias y horarios de confesión en', 74, normal, 13, SUAVE)
   centrado(page, 'www.confesor.es', 46, negrita, 22, MORADO)

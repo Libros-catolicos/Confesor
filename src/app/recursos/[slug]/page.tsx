@@ -34,7 +34,7 @@ export default async function ArticuloPage({ params }: PageProps<'/recursos/[slu
 
       <div className="mt-10 rounded-xl bg-accent-soft p-5 text-center">
         <p className="font-medium">¿Quieres confesarte?</p>
-        <p className="mt-1 text-sm text-muted">Encuentra un sacerdote cerca de ti y reserva sin registrarte.</p>
+        <p className="mt-1 text-sm text-muted">Encuentra un sacerdote cerca de ti y reserva cita: no es necesario registrarse.</p>
         <Link href="/buscar" className="btn-primary mt-3">
           Buscar sacerdote
         </Link>

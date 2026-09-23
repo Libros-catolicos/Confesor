@@ -7,6 +7,6 @@ export const contentType = 'image/png'
 export default function Image() {
   return imagenOg(
     'Encuentra un sacerdote cerca de ti',
-    'Busca por ubicación, idioma y horario. Reserva cita para confesarte sin registrarte.'
+    'Busca por ubicación, idioma y horario. Reserva cita para confesarte: no es necesario registrarse.'
   )
 }

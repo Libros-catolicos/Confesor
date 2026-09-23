@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { BellRing, CalendarCheck, Clock, Eye, MapPin, ShieldCheck } from 'lucide-react'
+import { BellRing, CalendarCheck, Clock, Eye, MapPin, QrCode, ShieldCheck } from 'lucide-react'
 
 const DESCRIPCION =
-  'Publica tus horarios de confesión y deja que los fieles reserven cita contigo. Gratis, sin publicidad y sin que nadie vea tu contacto.'
+  'Publica tus horarios de confesión y deja que los fieles reserven cita contigo. Descarga tu cartel con código QR para imprimirlo. Gratis, sin publicidad y sin que nadie vea tu contacto.'
 
 export const metadata: Metadata = {
   title: 'Para sacerdotes',
@@ -28,6 +28,10 @@ const PASOS = [
   {
     t: '4. Los fieles reservan',
     d: 'Te avisamos por correo de cada cita con dos botones: Confirmar o Rechazar. Si lo prefieres, la confirmación puede ser automática.',
+  },
+  {
+    t: '5. Cuelga tu cartel',
+    d: 'Desde tu ficha descargas un cartel A4 en PDF con tu código QR y tu enlace, listo para imprimir y colgar en la puerta de la iglesia o del confesionario.',
   },
 ]
 
@@ -56,6 +60,11 @@ const VENTAJAS = [
     Icon: BellRing,
     t: '«Ya estoy aquí»',
     d: 'Cuando el fiel llega a la parroquia puede pulsar un botón y recibes un correo al instante. Útil si estás en la sacristía o en el despacho.',
+  },
+  {
+    Icon: QrCode,
+    t: 'Tu cartel con código QR',
+    d: 'Un PDF A4 listo para imprimir: «Reserva un rato para confesarte con…», tu código QR y tu enlace. Quien lo escanee ve tus horarios y reserva en el momento.',
   },
   {
     Icon: MapPin,
@@ -101,7 +110,8 @@ export default function ParaSacerdotesPage() {
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-muted">
           Publica tu parroquia, tus horarios y tus idiomas. Los fieles te encuentran cerca de ellos y
-          reservan un hueco sin registrarse. Tú solo ves su nombre. Es gratis y sin publicidad.
+          reservan un hueco sin necesidad de registrarse. Tú solo ves su nombre. Y puedes descargar un
+          cartel con tu código QR para imprimirlo y colgarlo en la iglesia. Es gratis y sin publicidad.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link href="/registro/sacerdote" className="btn-primary">

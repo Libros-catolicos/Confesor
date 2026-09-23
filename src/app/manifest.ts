@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Confesor',
     short_name: 'Confesor',
     description:
-      'Encuentra sacerdotes cerca de ti para confesarte o hablar, y reserva cita sin registrarte.',
+      'Encuentra sacerdotes cerca de ti para confesarte o hablar y reserva cita: no es necesario registrarse.',
     lang: 'es',
     dir: 'ltr',
     start_url: '/',

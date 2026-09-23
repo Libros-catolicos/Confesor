@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     template: '%s · Confesor',
   },
   description:
-    'Encuentra sacerdotes cerca de ti para confesarte o hablar, y reserva cita sin registrarte.',
+    'Encuentra sacerdotes cerca de ti para confesarte o hablar y reserva cita: no es necesario registrarse.',
   applicationName: 'Confesor',
   // Tarjeta al compartir en WhatsApp, X, Telegram… (imagen en opengraph-image.tsx)
   metadataBase: new URL(siteUrl()),
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     locale: 'es_ES',
     title: 'Confesor',
     description:
-      'Encuentra sacerdotes cerca de ti para confesarte o hablar, y reserva cita sin registrarte.',
+      'Encuentra sacerdotes cerca de ti para confesarte o hablar y reserva cita: no es necesario registrarse.',
   },
   twitter: { card: 'summary_large_image' },
   // App instalable (PWA): el manifiesto lo genera src/app/manifest.ts
