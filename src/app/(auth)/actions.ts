@@ -38,6 +38,7 @@ export async function registro(_prev: AuthState, formData: FormData): Promise<Au
     .filter((c) => IDIOMAS.some((i) => i.code === c))
 
   const consent = formData.get('consent') === 'on'
+  const faculties = formData.get('faculties') === 'on'
   const newsletter = formData.get('newsletter') === 'on'
 
   if (fullName.length < 3) return { error: 'Indica tu nombre completo.' }
@@ -45,6 +46,7 @@ export async function registro(_prev: AuthState, formData: FormData): Promise<Au
   if (password.length < 8) return { error: 'La contraseña debe tener al menos 8 caracteres.' }
   if (languages.length === 0) return { error: 'Selecciona al menos un idioma.' }
   if (!consent) return { error: 'Necesitamos tu consentimiento expreso para crear la ficha.' }
+  if (!faculties) return { error: 'Necesitamos que declares que tienes las facultades para confesar en vigor.' }
 
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({
@@ -65,6 +67,7 @@ export async function registro(_prev: AuthState, formData: FormData): Promise<Au
   }
 
   await registrarConsentimiento({ subjectType: 'priest', subjectId: data.user?.id, email, kind: 'service', text: CONSENT_TEXT.priest })
+  await registrarConsentimiento({ subjectType: 'priest', subjectId: data.user?.id, email, kind: 'faculties', text: CONSENT_TEXT.faculties })
   if (newsletter) {
     await suscribirNewsletter(email, fullName, 'priest')
     await registrarConsentimiento({ subjectType: 'newsletter', email, kind: 'newsletter', text: CONSENT_TEXT.newsletter })

@@ -71,8 +71,8 @@ export const TIMEZONES = [
 ] as const
 
 export const PRIEST_STATUS_LABEL: Record<PriestStatus, string> = {
-  pendiente: 'Pendiente de verificación',
-  verificado: 'Verificado',
+  pendiente: 'Pendiente de comprobación',
+  verificado: 'Identidad comprobada',
   rechazado: 'Rechazado',
   suspendido: 'Suspendido',
 }
@@ -95,6 +95,7 @@ export interface Profile {
   phone: string | null
   notify_appointments: boolean
   reminder_days: number
+  last_confession_on: string | null
   last_nudge_at: string | null
   created_at: string
   updated_at: string
@@ -115,6 +116,9 @@ export interface Priest {
   diocese: string | null
   languages: string[]
   status: PriestStatus
+  paused: boolean
+  schedules_confirmed_at: string | null
+  schedules_reminded_at: string | null
   photo_url: string | null
   min_notice_hours: number
   auto_confirm: boolean

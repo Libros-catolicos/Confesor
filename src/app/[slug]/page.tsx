@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { MapPin, Languages } from 'lucide-react'
+import { BadgeCheck, MapPin, Languages } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { nombreIdioma } from '@/lib/idiomas'
 import { horaCorta } from '@/lib/fechas'
@@ -36,6 +36,7 @@ export default async function PriestPage({ params, searchParams }: PageProps<'/[
     .select('*')
     .eq('slug', slug)
     .eq('status', 'verificado')
+    .eq('paused', false)
     .maybeSingle<Priest>()
   if (!priest) notFound()
 
@@ -88,6 +89,19 @@ export default async function PriestPage({ params, searchParams }: PageProps<'/[
               </span>
             ))}
           </p>
+
+          <details className="mt-4 border-t border-border pt-3 text-xs text-muted">
+            <summary className="flex cursor-pointer items-center gap-1.5 text-accent">
+              <BadgeCheck className="h-4 w-4" aria-hidden />
+              Identidad comprobada
+            </summary>
+            <p className="mt-2 leading-relaxed">
+              Hemos comprobado que es sacerdote católico y que la parroquia indicada existe. Él
+              declara tener en vigor las facultades para confesar y se compromete a retirar su ficha
+              si dejara de tenerlas. Confesor no puede comprobar el estado de esas licencias en cada
+              momento.
+            </p>
+          </details>
         </div>
 
         {places.map((pl) => {
@@ -125,7 +139,7 @@ export default async function PriestPage({ params, searchParams }: PageProps<'/[
       <section className="card">
         <h2 className="font-semibold">Reservar cita</h2>
         <p className="mt-1 text-sm text-muted">
-          Horas en la hora local de la parroquia. Solo pedimos un nombre y un contacto.
+          Horas en la hora local de la parroquia. Solo pedimos un nombre y un correo.
         </p>
         <SlotPicker
           priestId={priest.id}

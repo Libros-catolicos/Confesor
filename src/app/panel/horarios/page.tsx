@@ -10,6 +10,7 @@ import {
   type Place,
 } from '@/lib/types'
 import { ReglaForm, AusenciaForm } from './Forms'
+import { RepasoHorarios } from './RepasoHorarios'
 import { alternarRegla, borrarAusencia, borrarRegla } from './actions'
 
 export const metadata = { title: 'Horarios' }
@@ -20,7 +21,12 @@ export default async function HorariosPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const [{ data: pp }, { data: rules }, { data: absences }] = await Promise.all([
+  const [{ data: priest }, { data: pp }, { data: rules }, { data: absences }] = await Promise.all([
+    supabase
+      .from('priests')
+      .select('schedules_confirmed_at')
+      .eq('id', user!.id)
+      .maybeSingle<{ schedules_confirmed_at: string | null }>(),
     supabase
       .from('priest_places')
       .select('places(id, name)')
@@ -58,6 +64,7 @@ export default async function HorariosPage() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
+      <RepasoHorarios confirmadoEl={priest?.schedules_confirmed_at ?? null} />
       <div className="flex flex-col gap-4">
         <section className="card">
           <h2 className="font-semibold">Horario semanal</h2>

@@ -1,13 +1,14 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { CasillaNewsletter, CasillaServicio } from '@/components/Consentimiento'
+import { CasillaFacultades, CasillaNewsletter, CasillaServicio } from '@/components/Consentimiento'
 import { registro } from '../../actions'
 import { IDIOMAS } from '@/lib/idiomas'
 
 export function RegistroForm() {
   const [state, action, pending] = useActionState(registro, undefined)
   const [consentido, setConsentido] = useState(false)
+  const [declarado, setDeclarado] = useState(false)
 
   if (state?.ok) {
     return <p className="rounded-lg bg-accent-soft p-4 text-sm">{state.ok}</p>
@@ -66,9 +67,10 @@ export function RegistroForm() {
         </div>
       </fieldset>
       <CasillaServicio tipo="priest" onChange={setConsentido} />
+      <CasillaFacultades onChange={setDeclarado} />
       <CasillaNewsletter />
       {state?.error && <p className="text-sm text-red-700">{state.error}</p>}
-      <button type="submit" className="btn-primary" disabled={pending || !consentido}>
+      <button type="submit" className="btn-primary" disabled={pending || !consentido || !declarado}>
         {pending ? 'Creando cuenta…' : 'Crear cuenta'}
       </button>
     </form>

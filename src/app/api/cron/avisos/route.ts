@@ -23,6 +23,16 @@ interface CitaManana {
   places: { name: string; address: string; city: string | null; timezone: string } | null
 }
 
+interface SacerdoteHorarios {
+  id: string
+  display_name: string
+  slug: string
+  schedules_confirmed_at: string | null
+  schedules_reminded_at: string | null
+  created_at: string
+  profiles: { email: string } | null
+}
+
 export async function GET(req: NextRequest) {
   const auth = req.headers.get('authorization')
   if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -35,14 +45,13 @@ export async function GET(req: NextRequest) {
     auth: { persistSession: false, autoRefreshToken: false },
   })
   const base = siteUrl()
-  const resultado = { borradas: 0, anonimizadas: 0, recordatorios: 0, avisos: 0 }
+  const resultado = { borradas: 0, recordatorios: 0, avisos: 0, horarios: 0 }
 
   // ---------- 0. Borrado de reservas 7 días después de la cita (política §2) ----------
   const { data: purga, error: errPurga } = await db.rpc('purge_appointments')
   if (errPurga) console.error('[cron] purge_appointments:', errPurga.message)
-  const p = (Array.isArray(purga) ? purga[0] : purga) as { deleted: number; anonymized: number } | undefined
+  const p = (Array.isArray(purga) ? purga[0] : purga) as { deleted: number } | undefined
   resultado.borradas = p?.deleted ?? 0
-  resultado.anonimizadas = p?.anonymized ?? 0
 
   // ---------- 1. Recordatorio de cita: citas que empiezan entre 20 y 44 horas después ----------
   const desde = new Date(Date.now() + 20 * 3600e3).toISOString()
@@ -92,7 +101,7 @@ export async function GET(req: NextRequest) {
   // ---------- 2. Aviso por tiempo sin confesarse (solo fieles que lo han activado) ----------
   const { data: fieles } = await db
     .from('profiles')
-    .select('id, full_name, email, reminder_days, last_nudge_at')
+    .select('id, full_name, email, reminder_days, last_nudge_at, last_confession_on')
     .eq('role', 'fiel')
     .gt('reminder_days', 0)
 
@@ -101,19 +110,17 @@ export async function GET(req: NextRequest) {
     // No repetir el aviso hasta que pase otro periodo completo
     if (f.last_nudge_at && new Date(f.last_nudge_at) > limite) continue
 
-    const [{ data: manual }, { data: citas }] = await Promise.all([
-      db.from('confessions').select('confessed_on').eq('user_id', f.id).order('confessed_on', { ascending: false }).limit(1),
-      db
-        .from('appointments')
-        .select('ends_at')
-        .eq('user_id', f.id)
-        .eq('type', 'confesion')
-        .in('status', ['confirmada', 'completada'])
-        .lt('ends_at', new Date().toISOString())
-        .order('ends_at', { ascending: false })
-        .limit(1),
-    ])
-    const fechas = [manual?.[0]?.confessed_on, citas?.[0]?.ends_at].filter(Boolean).map((d) => new Date(d as string))
+    // Solo conservamos una fecha: la última confesión anotada o deducida de una cita
+    const { data: citas } = await db
+      .from('appointments')
+      .select('ends_at')
+      .eq('user_id', f.id)
+      .eq('type', 'confesion')
+      .in('status', ['confirmada', 'completada'])
+      .lt('ends_at', new Date().toISOString())
+      .order('ends_at', { ascending: false })
+      .limit(1)
+    const fechas = [f.last_confession_on, citas?.[0]?.ends_at].filter(Boolean).map((d) => new Date(d as string))
     const ultima = fechas.length ? new Date(Math.max(...fechas.map((d) => d.getTime()))) : null
     if (ultima && ultima > limite) continue
 
@@ -132,6 +139,41 @@ export async function GET(req: NextRequest) {
     })
     await db.from('profiles').update({ last_nudge_at: new Date().toISOString() }).eq('id', f.id)
     if (ok) resultado.avisos++
+  }
+
+  // ---------- 3. Repaso semestral de horarios (nunca se pregunta por las facultades) ----------
+  const semestre = new Date(Date.now() - 182 * 86400e3).toISOString()
+  const { data: sacerdotes } = await db
+    .from('priests')
+    .select('id, display_name, slug, schedules_confirmed_at, schedules_reminded_at, created_at, profiles(email)')
+    .eq('status', 'verificado')
+    .eq('paused', false)
+    .returns<SacerdoteHorarios[]>()
+
+  for (const p of sacerdotes ?? []) {
+    const ultimoRepaso = p.schedules_confirmed_at ?? p.created_at
+    if (ultimoRepaso > semestre) continue
+    // Un solo recordatorio por periodo
+    if (p.schedules_reminded_at && p.schedules_reminded_at > semestre) continue
+    const email = p.profiles?.email
+    if (!email) continue
+
+    const ok = await enviarEmail({
+      to: email,
+      subject: 'Un repaso a tus horarios en Confesor',
+      html: plantilla(
+        'Un repaso a tus horarios',
+        `<p>Hola, ${p.display_name}.</p>
+         <p>Ha pasado medio año desde la última vez que revisaste tus horarios. Si siguen bien, no
+         tienes que hacer nada más que confirmarlo; si han cambiado, puedes corregirlos en un minuto.</p>
+         <p>Los fieles reservan a partir de lo que aparece en tu ficha, así que tenerlos al día es
+         lo que hace útil el servicio.</p>`,
+        { texto: 'Repasar mis horarios', url: `${base}/panel/horarios` }
+      ),
+      text: `Hola, ${p.display_name}. Ha pasado medio año desde la última vez que revisaste tus horarios en Confesor.\n\nRepásalos aquí: ${base}/panel/horarios`,
+    })
+    await db.from('priests').update({ schedules_reminded_at: new Date().toISOString() }).eq('id', p.id)
+    if (ok) resultado.horarios++
   }
 
   return NextResponse.json(resultado)

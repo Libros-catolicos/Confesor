@@ -13,11 +13,6 @@ export const metadata = { title: 'Mi cuenta', robots: { index: false, follow: fa
 type CitaConLugar = Pick<Appointment, 'id' | 'starts_at' | 'type' | 'status' | 'manage_token'> & {
   places: Pick<Place, 'name' | 'timezone'> | null
 }
-interface Confesion {
-  id: string
-  confessed_on: string
-}
-
 function diasDesde(fecha: string) {
   const ms = Date.now() - new Date(fecha + 'T12:00:00').getTime()
   return Math.max(0, Math.floor(ms / 86400000))
@@ -39,27 +34,16 @@ export default async function MiCuentaPage() {
   if (profile.role !== 'fiel') redirect(homeForRole(profile.role))
 
   const ahora = new Date().toISOString()
-  const [{ data: ultima }, { data: proximas }, { data: pasadas }, { data: confesiones }] = await Promise.all([
-    supabase.rpc('last_confession'),
-    supabase
-      .from('appointments')
-      .select('id, starts_at, type, status, manage_token, places(name, timezone)')
-      .eq('user_id', user.id)
-      .in('status', ['pendiente', 'confirmada', 'reprogramar'])
-      .gte('starts_at', ahora)
-      .order('starts_at')
-      .returns<CitaConLugar[]>(),
-    supabase
-      .from('appointments')
-      .select('id, starts_at, type, status, manage_token, places(name, timezone)')
-      .eq('user_id', user.id)
-      .lt('starts_at', ahora)
-      .order('starts_at', { ascending: false })
-      .limit(20)
-      .returns<CitaConLugar[]>(),
-    supabase.from('confessions').select('id, confessed_on').eq('user_id', user.id).order('confessed_on', { ascending: false }).limit(50).returns<Confesion[]>(),
-  ])
-  const ultimaFecha = (ultima as string | null) ?? null
+  // Solo las citas próximas: las pasadas se borran y de la confesión queda una fecha
+  const { data: proximas } = await supabase
+    .from('appointments')
+    .select('id, starts_at, type, status, manage_token, places(name, timezone)')
+    .eq('user_id', user.id)
+    .in('status', ['pendiente', 'confirmada', 'reprogramar'])
+    .gte('starts_at', ahora)
+    .order('starts_at')
+    .returns<CitaConLugar[]>()
+  const ultimaFecha = profile.last_confession_on
 
   return (
     <div className="flex flex-col gap-5">
@@ -100,24 +84,15 @@ export default async function MiCuentaPage() {
           <div className="mt-4 border-t border-border pt-4">
             <ConfesionForm />
           </div>
-          {confesiones && confesiones.length > 0 && (
-            <details className="mt-4 text-sm">
-              <summary className="cursor-pointer text-muted">Fechas anotadas ({confesiones.length})</summary>
-              <ul className="mt-2 divide-y divide-border">
-                {confesiones.map((c) => (
-                  <li key={c.id} className="flex items-center justify-between py-1.5">
-                    {fmtDia(c.confessed_on)}
-                    <form action={borrarConfesion}>
-                      <input type="hidden" name="id" value={c.id} />
-                      <button type="submit" className="rounded p-1 text-muted hover:bg-red-50 hover:text-red-700" title="Quitar">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </form>
-                  </li>
-                ))}
-              </ul>
-            </details>
+          {ultimaFecha && (
+            <form action={borrarConfesion} className="mt-3">
+              <button type="submit" className="flex items-center gap-1.5 text-xs text-muted underline hover:text-red-700">
+                <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                Borrar la fecha
+              </button>
+            </form>
           )}
+          <p className="mt-3 text-xs text-muted">Guardamos únicamente esta fecha, no un historial.</p>
         </section>
 
         <section className="card">
@@ -145,20 +120,9 @@ export default async function MiCuentaPage() {
               ))}
             </ul>
           )}
-          {pasadas && pasadas.length > 0 && (
-            <details className="mt-4 text-sm">
-              <summary className="cursor-pointer text-muted">Citas anteriores ({pasadas.length})</summary>
-              <ul className="mt-2 divide-y divide-border">
-                {pasadas.map((c) => (
-                  <li key={c.id} className="py-1.5 text-muted">
-                    {fmtFechaHora(c.starts_at, c.places?.timezone ?? 'Europe/Madrid')} · {SLOT_TYPE_LABEL[c.type]} ·{' '}
-                    {c.places?.name}
-                    {c.status === 'cancelada' && ' (cancelada)'}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          )}
+          <p className="mt-3 text-xs text-muted">
+            Las citas pasadas se borran a los 7 días; no guardamos historial.
+          </p>
         </section>
 
         <section className="card">
@@ -171,8 +135,8 @@ export default async function MiCuentaPage() {
         <section className="card">
           <h2 className="font-semibold">Tus datos</h2>
           <p className="mt-2 text-sm text-muted">
-            Guardamos tu nombre, tu email y las fechas de tus citas y confesiones. Nada más. Ningún
-            sacerdote ve tu historial.
+            Guardamos tu nombre, tu email, tus citas próximas y la fecha de tu última confesión.
+            Nada más: ni historial de citas ni de confesiones.
           </p>
           <div className="mt-4">
             <BorrarCuenta />

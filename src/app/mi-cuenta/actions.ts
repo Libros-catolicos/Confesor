@@ -17,15 +17,18 @@ async function sesion() {
   return { supabase, user }
 }
 
-/** "Me he confesado" con una fecha (hoy por defecto) */
+/**
+ * "Me he confesado el…". Guardamos solo la última fecha, no un historial: es un
+ * dato sacramental y conviene conservar lo mínimo imprescindible para el aviso.
+ */
 export async function registrarConfesion(_prev: CuentaState, formData: FormData): Promise<CuentaState> {
   const fecha = String(formData.get('fecha') ?? '')
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return { error: 'Indica la fecha.' }
   if (new Date(fecha) > new Date()) return { error: 'La fecha no puede ser futura.' }
 
   const { supabase, user } = await sesion()
-  const { error } = await supabase.from('confessions').insert({ user_id: user.id, confessed_on: fecha })
-  if (error && error.code !== '23505') {
+  const { error } = await supabase.from('profiles').update({ last_confession_on: fecha }).eq('id', user.id)
+  if (error) {
     console.error('[mi-cuenta] confesión:', error.message)
     return { error: 'No se ha podido guardar.' }
   }
@@ -33,11 +36,10 @@ export async function registrarConfesion(_prev: CuentaState, formData: FormData)
   return { ok: 'Anotado.' }
 }
 
-export async function borrarConfesion(formData: FormData) {
-  const id = String(formData.get('id') ?? '')
-  if (!id) return
-  const { supabase } = await sesion()
-  await supabase.from('confessions').delete().eq('id', id)
+/** Borra la única fecha guardada */
+export async function borrarConfesion() {
+  const { supabase, user } = await sesion()
+  await supabase.from('profiles').update({ last_confession_on: null }).eq('id', user.id)
   revalidatePath('/mi-cuenta')
 }
 

@@ -13,8 +13,10 @@ export const CONSENT_TEXT = {
     'Tengo 14 años o más y consiento de forma expresa que Confesor trate mis datos, incluidos mi historial de citas y las fechas de confesión que yo anote, que revelan mis creencias religiosas. Puedo retirar este consentimiento y borrar mi cuenta cuando quiera.',
   priest:
     'Consiento de forma expresa que Confesor trate mis datos para verificar mi condición de sacerdote y publique en internet mi nombre, parroquia, horarios, idiomas y presentación. Me comprometo a usar los datos de los fieles solo para atender sus citas.',
+  faculties:
+    'Declaro que tengo en vigor las facultades para administrar el sacramento de la Penitencia y me comprometo a pausar o retirar mi ficha si me fueran suspendidas o revocadas.',
   newsletter: `Soy mayor de 18 años y quiero recibir por correo recomendaciones de libros católicos editados por el titular de Confesor, también dentro de los correos de bienvenida y de cita, y el libro electrónico de regalo. Puedo darme de baja en cada envío.`,
 } as const
 
-export type ConsentKind = 'service' | 'newsletter' | 'minor_guardian' | 'reminders'
+export type ConsentKind = 'service' | 'newsletter' | 'minor_guardian' | 'reminders' | 'faculties'
 export type SubjectType = 'booking' | 'faithful' | 'priest' | 'newsletter'

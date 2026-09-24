@@ -123,3 +123,33 @@ export async function quitarDocumento(): Promise<void> {
     .eq('priest_id', user.id)
   revalidatePath('/panel/ficha')
 }
+
+// ---------- Pausar o volver a publicar la ficha (lo decide el sacerdote) ----------
+export async function cambiarPausa(_prev: FichaState, formData: FormData): Promise<FichaState> {
+  const pausar = formData.get('pausar') === 'si'
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'Sesión caducada.' }
+
+  const { error } = await supabase.from('priests').update({ paused: pausar }).eq('id', user.id)
+  if (error) {
+    console.error('[ficha] pausa:', error.message)
+    return { error: 'No se ha podido cambiar la visibilidad de tu ficha.' }
+  }
+
+  revalidatePath('/panel')
+  revalidatePath('/panel/ficha')
+  return { ok: pausar ? 'Tu ficha ya no es visible.' : 'Tu ficha vuelve a estar publicada.' }
+}
+
+// ---------- "Mis horarios siguen al día" (recordatorio periódico) ----------
+export async function confirmarHorarios(): Promise<void> {
+  const supabase = await createClient()
+  const { error } = await supabase.rpc('confirmar_horarios')
+  if (error) console.error('[ficha] confirmar horarios:', error.message)
+  revalidatePath('/panel')
+  revalidatePath('/panel/horarios')
+}

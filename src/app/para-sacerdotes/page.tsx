@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { BellRing, CalendarCheck, Clock, Eye, MapPin, QrCode, ShieldCheck } from 'lucide-react'
+import { BellRing, CalendarCheck, Clock, Eye, MapPin, PauseCircle, QrCode, ShieldCheck } from 'lucide-react'
 
 const DESCRIPCION =
   'Publica tus horarios de confesión y deja que los fieles reserven cita contigo. Descarga tu cartel con código QR para imprimirlo. Gratis, sin publicidad y sin que nadie vea tu contacto.'
@@ -22,8 +22,8 @@ const PASOS = [
     d: 'Una o varias parroquias con su dirección y, para cada una, los tramos semanales en que confiesas o atiendes conversaciones. Puedes marcar ausencias.',
   },
   {
-    t: '3. Te verificamos',
-    d: 'Indícanos la parroquia donde estás destinado y un contacto institucional donde podamos comprobarlo. Un administrador lo revisa y activa tu ficha. Así nadie puede suplantar a un sacerdote.',
+    t: '3. Comprobamos tu identidad',
+    d: 'Indícanos la parroquia donde estás destinado y un contacto institucional donde podamos comprobarlo; si puedes, adjunta tu celebret. Un administrador lo revisa y publica tu ficha. Así nadie puede suplantar a un sacerdote.',
   },
   {
     t: '4. Los fieles reservan',
@@ -62,6 +62,11 @@ const VENTAJAS = [
     d: 'Cuando el fiel llega a la parroquia puede pulsar un botón y recibes un correo al instante. Útil si estás en la sacristía o en el despacho.',
   },
   {
+    Icon: PauseCircle,
+    t: 'Pausa tu ficha cuando quieras',
+    d: 'Un botón la oculta al instante, sin borrar nada: si te suspenden las facultades para confesar, si estás enfermo o si te ausentas una temporada. Tú decides cuándo vuelve.',
+  },
+  {
     Icon: QrCode,
     t: 'Tu cartel con código QR',
     d: 'Un PDF A4 listo para imprimir: «Reserva un rato para confesarte con…», tu código QR y tu enlace. Quien lo escanee ve tus horarios y reserva en el momento.',
@@ -97,6 +102,10 @@ const PREGUNTAS = [
   {
     q: '¿Necesito permiso de mi diócesis?',
     a: 'Confesor no sustituye las normas de tu diócesis ni de tu superior. Te pedimos que cuentes con los permisos que ellos exijan y que tengas las licencias en vigor.',
+  },
+  {
+    q: '¿Qué comprobáis exactamente?',
+    a: 'Que eres sacerdote católico y que la parroquia que indicas existe. No podemos comprobar el estado de tus facultades para confesar en cada momento: al registrarte declaras tenerlas en vigor y te comprometes a pausar tu ficha si te fueran suspendidas. Así se lo explicamos también a los fieles.',
   },
 ]
 

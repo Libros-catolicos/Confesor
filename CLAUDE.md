@@ -58,3 +58,12 @@
   (pdf-lib + qrcode). Solo datos públicos. Las tildes funcionan con Helvetica (WinAnsi).
 - Aviso al administrador: `notificarAltaSacerdote` avisa a `emailAdmin()` (`ADMIN_EMAIL` o
   editor@libroscatolicos.es) en cada alta de sacerdote, para que la verifique.
+- Facultades para confesar (revisión de un sacerdote consultor, 2026-09-24): el sello público dice
+  "Identidad comprobada" (no "Verificado") y explica que no comprobamos el estado de las licencias;
+  al registrarse el sacerdote firma `CONSENT_TEXT.faculties` (kind `faculties` en consent_log); y
+  `priests.paused` le permite ocultar su ficha al instante (RLS, search_priests y book_appointment
+  la excluyen). Nunca preguntar por las facultades en correos automáticos: el repaso semestral del
+  cron es solo de horarios (`schedules_confirmed_at`/`schedules_reminded_at`, botón en /panel/horarios).
+- Minimización de datos sacramentales: no hay tabla `confessions` ni historial de citas. Solo
+  `profiles.last_confession_on` (una fecha) y las citas próximas; `purge_appointments` borra TODAS las
+  citas a los 7 días y antes vuelca la última confesión a esa columna.

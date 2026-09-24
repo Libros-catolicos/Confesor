@@ -60,6 +60,22 @@ export function CasillaRecordatorio() {
   )
 }
 
+/** Declaración del sacerdote sobre sus licencias para confesar */
+export function CasillaFacultades({ onChange }: { onChange?: (marcada: boolean) => void }) {
+  return (
+    <label className="flex items-start gap-2 text-sm">
+      <input
+        type="checkbox"
+        name="faculties"
+        required
+        className="mt-1 shrink-0 accent-accent"
+        onChange={(e) => onChange?.(e.target.checked)}
+      />
+      <span>{CONSENT_TEXT.faculties}</span>
+    </label>
+  )
+}
+
 export function CasillaNewsletter() {
   return (
     <div className="rounded-lg border border-dashed border-border p-3">

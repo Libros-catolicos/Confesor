@@ -6,6 +6,7 @@ import { FichaForm } from './FichaForm'
 import { FileDown } from 'lucide-react'
 import { CopiarEnlace } from './CopiarEnlace'
 import { DocumentoVerificacion } from './DocumentoVerificacion'
+import { PausarFicha } from './PausarFicha'
 
 export const metadata = { title: 'Mi ficha' }
 
@@ -59,6 +60,10 @@ export default async function FichaPage() {
               <FileDown className="h-4 w-4" aria-hidden />
               Descargar cartel (PDF)
             </a>
+          </div>
+
+          <div className="mt-4 border-t border-border pt-4">
+            <PausarFicha pausada={priest.paused} />
           </div>
 
           {priest.status !== 'verificado' && (

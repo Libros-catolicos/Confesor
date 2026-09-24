@@ -115,9 +115,16 @@ export default async function AdminSacerdotesPage({ searchParams }: PageProps<'/
                       )}
                     </div>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${ESTILO[p.status]}`}>
-                    {PRIEST_STATUS_LABEL[p.status]}
-                  </span>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${ESTILO[p.status]}`}>
+                      {PRIEST_STATUS_LABEL[p.status]}
+                    </span>
+                    {p.paused && (
+                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                        En pausa por el sacerdote
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-2 border-t border-border pt-3">
